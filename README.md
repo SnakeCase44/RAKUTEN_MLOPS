@@ -9,11 +9,6 @@ Modèles entraînables en local, environnement Python reproductible, code modula
 
 ### 1. Cloner le dépôt
 
-```bash
-git clone git@github.com:SnakeCase44/RAKUTEN_MLOPS.git
-cd RAKUTEN_MLOPS
-```
-
 ### 2. Créer et activer un environnement virtuel
 ```bash
 python3 -m venv venv
