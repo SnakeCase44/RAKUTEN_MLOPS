@@ -1,0 +1,52 @@
+# === ENVIRONNEMENT PYTHON ===
+.venv/
+env/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# === FICHIERS D’INTERPRÉTEUR PYTHON ===
+*.log
+*.tmp
+
+# === NOTEBOOKS ===
+.ipynb_checkpoints/
+
+# === FICHIERS JUPYTER/LAB ===
+.jupyter/
+.jupyterlab/
+
+# === DOSSIERS LOURDS OU LOCAUX ===
+dataset/
+submissions/
+lightning_logs/
+test_multimodal.ipynb
+*.pt
+*.pkl
+*.ckpt
+*.csv
+*.json
+*.pth
+
+# === IDE : PYCHARM ===
+.idea/
+
+# === IDE : VSCODE ===
+.vscode/
+*.code-workspace
+
+# === REQUIS ===
+
+
+# === AUTRES : SYSTÈME, OS, DIVERS ===
+.DS_Store
+Thumbs.db
+espace_personnel/
+rakuten_ds.egg-info/
+hparams.yaml
+sentencepiece.bpe.model
+app/models/rakuten_ConvNext_image/result_models/
+processed/
+tests/
