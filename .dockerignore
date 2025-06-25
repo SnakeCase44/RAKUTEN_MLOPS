@@ -1,0 +1,60 @@
+# Données et datasets
+data/
+datasets/
+*.csv
+*.xlsx
+*.json
+
+# Modèles entraînés
+models/*/checkpoints/
+models/*/saved_models/
+*.pth
+*.pkl
+*.bin
+*.safetensors
+
+# Logs et métriques
+logs/
+lightning_logs/
+tensorboard/
+wandb/
+*.log
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+
+# Cache pip/conda
+.cache/
+pip-cache/
+
+# Environnements virtuels
+venv/
+env/
+.conda/
+
+# IDE et config
+.vscode/
+.idea/
+.DS_Store
+.git/
+.gitignore
+
+# Images et médias
+*.jpg
+*.jpeg
+*.png
+*.mp4
+*.avi
+
+# Notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# Autres gros fichiers
+*.zip
+*.tar.gz
+*.rar

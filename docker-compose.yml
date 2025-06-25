@@ -1,0 +1,50 @@
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: rakuten_postgres
+    environment:
+      POSTGRES_DB: rakuten_auth
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d rakuten_auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: src/fastapi/Dockerfile
+    container_name: rakuten_api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/rakuten_auth
+      MODEL_PATH: /app/models/multimodal_transformer_classifier/model
+    volumes:
+      - ./models:/app/models:rw
+      - ./logs:/app/logs
+      - ./dataset:/app/dataset:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  adminer:
+    image: adminer
+    container_name: rakuten_adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    profiles:
+      - debug
+
+volumes:
+  postgres_data:
