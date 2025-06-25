@@ -15,6 +15,8 @@ from pytorch_lightning.loggers import CSVLogger
 from models.rakuten_efficientnet_image.modelisation import LitImageModel
 from models.preprocessing_text import clean_text
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from PIL import Image
+import torchvision.transforms as T
 
 
 # Import des modules de prétraitement et d'augmentation
@@ -25,6 +27,7 @@ from models.multimodal_transformer_classifier.augmentation import (
 )
 
 from config import IMAGE_PREPROCESSED_DIR
+
 
 # Configuration par défaut pour le modèle multimodal
 DEFAULT_MULTIMODAL_CONFIG = {
@@ -716,10 +719,6 @@ def load_text_model(model_path, meta_path):
     model.eval()
 
     return model, label_enc
-
-
-from PIL import Image
-import torchvision.transforms as T
 
 def predict(self, text, image_path, tokenizer):
     """
