@@ -358,6 +358,7 @@ class MultimodalTrainer:
 
         self.model_save_path = model_save_path
         self.config = config or DEFAULT_MULTIMODAL_CONFIG
+        print(f"Using config: {self.config}")
         self.model = None
         self.label_enc = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -40,6 +40,15 @@ async def train_model(
     hidden_size: int = Form(DEFAULT_HYPERPARAMS["hidden_size"]),
     label_smoothing: float = Form(DEFAULT_HYPERPARAMS["label_smoothing"]),
 ):
+    print(f"Received batch_size: {batch_size}")
+    print(f"Received max_epochs: {max_epochs}")
+    print(f"Received lr: {lr}")
+    print(f"Received patience: {patience}")
+    print(f"Received dropout: {dropout}")
+    print(f"Received weight_decay: {weight_decay}")
+    print(f"Received hidden_size: {hidden_size}")
+    print(f"Received label_smoothing: {label_smoothing}")
+
     try:
         hyperparams = {
             "batch_size": batch_size,
@@ -60,6 +69,8 @@ async def train_model(
         for key, value in hyperparams.items():
             cmd_parts.append(f"--{key}")
             cmd_parts.append(str(value))
+        
+        print("Constructed command:", " ".join(cmd_parts))
 
         # Exécuter le script train.py avec les hyperparamètres
         result = subprocess.run(cmd_parts, capture_output=True, text=True)
