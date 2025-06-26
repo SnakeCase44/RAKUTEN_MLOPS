@@ -10,11 +10,6 @@ from fastapi import APIRouter
 
 router = APIRouter()
 
-@router.get("/test")
-def hello():
-    return {"message": "Hello, Rakuten World!"}
-
-
 
 templates = Jinja2Templates(directory=os.path.join(API_DIR, "templates"))
 
