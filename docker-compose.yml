@@ -22,6 +22,7 @@ services:
       context: .
       dockerfile: src/fastapi/Dockerfile
     container_name: rakuten_api
+    command: sh -c "python src/fastapi/dbcrypt.py 
     ports:
       - "8000:8000"
     environment:
