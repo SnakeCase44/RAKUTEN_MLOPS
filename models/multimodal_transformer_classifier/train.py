@@ -5,6 +5,7 @@ import pandas as pd
 from models.multimodal_transformer_classifier.modelisation import DEFAULT_MULTIMODAL_CONFIG
 from models.rakuten_efficientnet_image.modelisation import DEFAULT_IMAGE_CLASSIFIER_CONFIG
 from models.rakuten_transformer_text.modelisation import TRANSFORMER_CONFIG
+import argparse
 
 # Import des modèles
 from models.multimodal_transformer_classifier.modelisation import (
@@ -38,6 +39,29 @@ def load_data(split_dir: Path):
 
 
 def main():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--batch_size", type=int, default=DEFAULT_MULTIMODAL_CONFIG["batch_size"])
+    parser.add_argument("--max_epochs", type=int, default=DEFAULT_MULTIMODAL_CONFIG["max_epochs"])
+    parser.add_argument("--lr", type=float, default=DEFAULT_MULTIMODAL_CONFIG["lr"])
+    parser.add_argument("--patience", type=int, default=DEFAULT_MULTIMODAL_CONFIG["patience"])
+    parser.add_argument("--dropout", type=float, default=DEFAULT_MULTIMODAL_CONFIG["dropout"])
+    parser.add_argument("--weight_decay", type=float, default=DEFAULT_MULTIMODAL_CONFIG["weight_decay"])
+    parser.add_argument("--hidden_size", type=int, default=DEFAULT_MULTIMODAL_CONFIG["hidden_size"])
+    parser.add_argument("--label_smoothing", type=float, default=DEFAULT_MULTIMODAL_CONFIG["label_smoothing"])
+    
+
+    args = parser.parse_args()
+
+    print(f"Using batch_size: {args.batch_size}")
+    print(f"Using max_epochs: {args.max_epochs}")
+    print(f"Using lr: {args.lr}")
+    print(f"Using patience: {args.patience}")
+    print(f"Using dropout: {args.dropout}")
+    print(f"Using weight_decay: {args.weight_decay}")
+    print(f"Using hidden_size: {args.hidden_size}")
+    print(f"Using label_smoothing: {args.label_smoothing}")
+
     # Vérifier que les chemins existent
     os.makedirs(MULTIMODAL_MODEL_PATH, exist_ok=True)
 
@@ -66,10 +90,22 @@ def main():
     y_train = df_y_train["prdtypecode"].values
     y_val = df_y_val["prdtypecode"].values
 
-    # Initialisation du trainer
+    # Création du dictionnaire de configuration à partir des arguments
+    custom_config = {
+    "batch_size": args.batch_size,
+    "max_epochs": args.max_epochs,
+    "lr": args.lr,
+    "patience": args.patience,
+    "dropout": args.dropout,
+    "weight_decay": args.weight_decay,
+    "hidden_size": args.hidden_size,
+    "label_smoothing": args.label_smoothing
+}
+
+# Utilisation de la configuration personnalisée
     trainer = MultimodalTrainer(
-        model_save_path=MULTIMODAL_MODEL_PATH,
-        config=DEFAULT_MULTIMODAL_CONFIG
+    model_save_path=MULTIMODAL_MODEL_PATH,
+    config=custom_config
     )
 
     # Entraînement

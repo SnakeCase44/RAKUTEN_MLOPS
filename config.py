@@ -50,6 +50,9 @@ X_TEST_FILTERED  = DATA_DIR / "X_test_filtered.csv"
 IMAGE_TRAIN_DIR        = DATA_DIR / "images" / "image_train"
 IMAGE_TEST_DIR         = DATA_DIR / "images" / "image_test"
 
+# === Dossier API ===
+API_DIR = PROJECT_ROOT / "src" / "fastapi" / "endpoints"
+
 # ======================================================================================
 # Modèle et device
 # ======================================================================================
