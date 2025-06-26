@@ -4,38 +4,23 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import Optional
+import psycopg2
+from psycopg2.extras import DictCursor
 
 app = FastAPI()
 router = APIRouter()
 templates = Jinja2Templates(directory="src/fastapi/endpoints")
 
-# Simuler une base de données d'utilisateurs
-fake_users_db = {
-    "admin": {
-        "username": "admin",
-        "full_name": "Admin User",
-        "email": "admin@example.com",
-        "hashed_password": "fakehashedsecretadmin",
-        "disabled": False,
-        "role": "admin"
-    },
-    "dev": {
-        "username": "dev",
-        "full_name": "Dev User",
-        "email": "dev@example.com",
-        "hashed_password": "fakehashedsecretdev",
-        "disabled": False,
-        "role": "dev"
-    },
-    "client": {
-        "username": "client",
-        "full_name": "Client User",
-        "email": "client@example.com",
-        "hashed_password": "fakehashedsecretclient",
-        "disabled": False,
-        "role": "client"
-    }
-}
+# Configuration de la connexion à la base de données
+def get_db_connection():
+    conn = psycopg2.connect(
+        dbname="rakuten_auth",
+        user="admin",
+        password="admin123",  # Utilisez une variable d'environnement pour le mot de passe
+        host="postgres",
+        port="5432"
+    )
+    return conn
 
 class User(BaseModel):
     username: str
@@ -47,15 +32,27 @@ class User(BaseModel):
 class UserInDB(User):
     hashed_password: str
 
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
+def get_user(username: str):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=DictCursor)
+    cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+    user = cursor.fetchone()
+    conn.close()
+    if user:
+        return UserInDB(
+            username=user['username'],
+            full_name=user['full_name'],
+            email=user['email'],
+            hashed_password=user['hashed_password'],
+            disabled=user['disabled'],
+            role=user['role']
+        )
+    return None
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
-    user = fake_decode_token(token)
+    user = get_user(token)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -69,19 +66,10 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
-def fake_decode_token(token):
-    # Simuler le décodage d'un token JWT
-    user = get_user(fake_users_db, token)
-    return user
-
 @router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user_dict = fake_users_db.get(form_data.username)
-    if not user_dict:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-
-    user = UserInDB(**user_dict)
-    if not form_data.password == "secret":  # Dans un vrai cas, vérifiez le mot de passe haché
+    user = get_user(form_data.username)
+    if not user or form_data.password != "secret":  # Remplacez par une vérification de mot de passe haché
         raise HTTPException(status_code=400, detail="Incorrect username or password")
 
     return {"access_token": user.username, "token_type": "bearer"}
@@ -92,7 +80,7 @@ async def read_login(request: Request):
 
 @router.post("/form-login")
 async def form_login(request: Request, username: str = Form(...), password: str = Form(...)):
-    user = get_user(fake_users_db, username)
+    user = get_user(username)
     if not user or password != "secret":  # Remplacez par une vérification de mot de passe haché
         return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials"})
 
