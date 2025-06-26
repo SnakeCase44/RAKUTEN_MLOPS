@@ -7,7 +7,7 @@ from typing import Optional
 import psycopg2
 from psycopg2.extras import DictCursor
 from passlib.context import CryptContext
-
+import src.fastapi.endpoints.dbcrypt as dbcrypt
 app = FastAPI()
 router = APIRouter()
 templates = Jinja2Templates(directory="src/fastapi/endpoints")
