@@ -49,4 +49,3 @@ hparams.yaml
 sentencepiece.bpe.model
 app/models/rakuten_ConvNext_image/result_models/
 processed/
-tests/

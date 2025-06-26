@@ -16,9 +16,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install -e .
 
-# Copier le code
+# Copier le code ET les tests
 COPY src/ ./src/
 COPY models/ ./models/
+COPY tests/ ./tests/
 COPY config.py ./
 
 CMD ["uvicorn", "src.fastapi.main:app", "--host", "0.0.0.0", "--port", "8000"]
