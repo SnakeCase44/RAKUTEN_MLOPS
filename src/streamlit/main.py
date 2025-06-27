@@ -7,7 +7,8 @@ st.set_page_config(page_title="RAKUTEN", layout="wide")
 
 from pages_streamlit import (
     page_home,
-    page_train 
+    page_train,
+    page_predict
 )
 
 if 'page' not in st.session_state:
@@ -17,7 +18,7 @@ st.sidebar.title("📁 Navigation")
 page = st.sidebar.radio("Aller à :", [
     "Accueil",
     "Entraînement modèle",
-    
+    "Classification produit"
 ])
 
 st.session_state.page = page
@@ -25,7 +26,7 @@ st.session_state.page = page
 page_switch = {
     "Accueil": page_home.run,
     "Entraînement modèle": page_train.run,
-
+    "Classification produit": page_predict.run
 }
 
 page_switch[st.session_state.page]()
