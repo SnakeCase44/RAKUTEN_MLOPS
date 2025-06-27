@@ -35,3 +35,8 @@ pytest
 pytest-asyncio
 httpx
 
+# Streamlit
+streamlit
+plotly
+altair
+

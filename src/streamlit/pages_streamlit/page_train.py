@@ -1,7 +1,9 @@
 import streamlit as st
 import requests
+import os
 
-API_URL = "http://localhost:8000/train"
+API_BASE_URL = os.getenv("API_URL", "http://localhost:8000")
+API_URL = f"{API_BASE_URL}/train"
 
 DEFAULT_HYPERPARAMS = {
     "batch_size": 48,
