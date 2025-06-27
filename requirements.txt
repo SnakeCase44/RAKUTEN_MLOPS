@@ -29,3 +29,14 @@ python-multipart
 
 # DB
 psycopg2-binary
+
+# Tests
+pytest
+pytest-asyncio
+httpx
+
+# Streamlit
+streamlit
+plotly
+altair
+

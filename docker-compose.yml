@@ -44,15 +44,24 @@ services:
             - capabilities: [gpu]
     shm_size: 8gb
 
-  adminer:
-    image: adminer
-    container_name: rakuten_adminer
+  streamlit:
+    build:
+      context: ./src/streamlit
+      dockerfile: Dockerfile
+    container_name: rakuten_streamlit
     ports:
-      - "8080:8080"
+      - "8501:8501"
+    environment:
+      API_URL: http://api:8000
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/rakuten_auth
+    volumes:
+      - ./models:/app/models:ro
+      - ./dataset:/app/dataset:ro
+      - ./logs:/app/logs
     depends_on:
+      - api
       - postgres
-    profiles:
-      - debug
+    restart: unless-stopped
 
 volumes:
   postgres_data:
