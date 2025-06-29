@@ -29,6 +29,8 @@ python-multipart
 
 # Authentication
 passlib[bcrypt]==1.7.4
+python-jose[cryptography]
+jinja2
 
 # DB
 psycopg2-binary

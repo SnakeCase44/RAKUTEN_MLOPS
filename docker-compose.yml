@@ -17,6 +17,19 @@ services:
       timeout: 5s
       retries: 5
 
+  init_db:
+    build:
+      context: .
+      dockerfile: src/fastapi/Dockerfile
+    container_name: rakuten_init_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["python", "src/fastapi/endpoints/dbcrypt.py"]
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    restart: "no"
+
   api:
     build:
       context: .
@@ -34,15 +47,9 @@ services:
       - ./logs:/app/logs
       - ./dataset:/app/dataset:ro
     depends_on:
-      postgres:
-        condition: service_healthy
+      init_db:
+        condition: service_completed_successfully
     restart: unless-stopped
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]
-    shm_size: 8gb
 
   streamlit:
     build:
