@@ -17,7 +17,7 @@ def get_db_connection():
         dbname="rakuten_auth",
         user="admin",
         password="admin123",  # Remplacez par votre mot de passe ou utilisez une variable d'environnement
-        host="localhost",
+        host="postgres",  # Assurez-vous que le nom d'hôte est correct
         port="5432"
     )
     return conn
