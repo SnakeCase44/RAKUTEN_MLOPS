@@ -17,9 +17,7 @@ services:
       timeout: 5s
       retries: 5
   init_db:
-    build:
-      context: .
-      dockerfile: src/fastapi/Dockerfile
+    image: rakuten_fastapi  # rutilisation image `api`
     container_name: rakuten_init_db
     depends_on:
       postgres:
@@ -28,6 +26,7 @@ services:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     restart: "no"
+
   api:
     build:
       context: .
