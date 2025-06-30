@@ -7,8 +7,6 @@ services:
       POSTGRES_DB: rakuten_auth
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      NVIDIA_VISIBLE_DEVICES: all
-      NVIDIA_DRIVER_CAPABILITIES: compute,utility
     ports:
       - "5432:5432"
     volumes:
@@ -18,7 +16,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
   init_db:
     build:
       context: .
@@ -31,68 +28,6 @@ services:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     restart: "no"
-
-  api:
-    build:
-      context: .
-      dockerfile: src/fastapi/Dockerfile
-    container_name: rakuten_api
-    ports:
-      - "8000:8000"
-    environment:
-      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/rakuten_auth
-      MODEL_PATH: /app/models/multimodal_transformer_classifier/model
-      NVIDIA_VISIBLE_DEVICES: all
-      NVIDIA_DRIVER_CAPABILITIES: compute,utility
-    volumes:
-      - ./models:/app/models:rw
-      - ./logs:/app/logs
-      - ./dataset:/app/dataset:ro
-    depends_on:
-      init_db:
-        condition: service_completed_successfully
-    restart: unless-stopped
-
-  streamlit:
-    build:
-      context: ./src/streamlit
-      dockerfile: Dockerfile
-    container_name: rakuten_streamlit
-    ports:
-      - "8501:8501"
-    environment:
-      API_URL: http://api:8000
-      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/rakuten_auth
-    volumes:
-      - ./models:/app/models:ro
-      - ./dataset:/app/dataset:ro
-      - ./logs:/app/logs
-    depends_on:
-      - api
-      - postgres
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
-services:
-
-  postgres:
-    image: postgres:15
-    container_name: rakuten_postgres
-    environment:
-      POSTGRES_DB: rakuten_auth
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d rakuten_auth"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   api:
     build:
       context: .
