@@ -1,0 +1,8 @@
+services:
+  api:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    shm_size: 8gb
