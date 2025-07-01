@@ -27,6 +27,12 @@ fastapi
 uvicorn[standard]
 python-multipart
 
+# Authentication
+passlib[bcrypt]
+bcrypt==3.2.0
+python-jose[cryptography]
+jinja2
+
 # DB
 psycopg2-binary
 

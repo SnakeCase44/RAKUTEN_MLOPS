@@ -16,6 +16,16 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  init_db:
+    image: rakuten_fastapi  # rutilisation image `api`
+    container_name: rakuten_init_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["python", "src/fastapi/endpoints/dbcrypt.py"]
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    restart: "no"
 
   api:
     build:
@@ -37,12 +47,12 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]
-    shm_size: 8gb
+    #deploy:
+    #  resources:
+    #    reservations:
+    #      devices:
+    #        - capabilities: [gpu]
+    #shm_size: 8gb
 
   streamlit:
     build:
