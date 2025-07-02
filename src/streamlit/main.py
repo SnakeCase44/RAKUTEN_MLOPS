@@ -1,7 +1,6 @@
 import os
 import streamlit as st
 import requests
-from streamlit.components.v1 import html
 
 # Lire les query params
 query_params = st.query_params
@@ -56,28 +55,10 @@ if token:
                 page_predict.run(role)
         else:
             st.error("Token invalide ou expiré.")
-            # Redirection en cas d'erreur
-            redirect_script = """
-            <script>
-            window.location.replace("http://host.docker.internal:8000/");
-            </script>
-            """
-            st.markdown(redirect_script, unsafe_allow_html=True)
+            st.markdown("[Connectez-vous ici](http://127.0.0.1:8000/)")
     except Exception as e:
         st.error(f"Erreur de connexion à l'API : {str(e)}")
-        # Redirection en cas d'erreur
-        redirect_script = """
-        <script>
-        window.location.replace("http://host.docker.internal:8000/");
-        </script>
-        """
-        st.markdown(redirect_script, unsafe_allow_html=True)
+        st.markdown("[Connectez-vous ici](http://127.0.0.1:8000/)")
 else:
     st.warning("Connectez-vous via FastAPI d’abord.")
-    # Redirection si non connecté
-    redirect_script = """
-    <script>
-    window.location.replace("http://host.docker.internal:8000/");
-    </script>
-    """
-    st.markdown(redirect_script, unsafe_allow_html=True)
+    st.markdown("[Connectez-vous ici](http://127.0.0.1:8000/)")
