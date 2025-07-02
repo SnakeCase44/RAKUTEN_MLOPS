@@ -321,8 +321,40 @@ class MultimodalDataset(Dataset):
 
 
 class MultimodalTrainer:
+    """
+    Classe de gestion de l'entraînement, de l'évaluation et du chargement d’un modèle de classification multimodale
+    combinant texte et image avec PyTorch Lightning.
+    Cette classe encapsule toutes les étapes suivantes :
+    - Préparation des datasets (texte + image)
+    - Application d’augmentations conditionnelles
+    - Entraînement d’un modèle `MultimodalClassifier` avec callbacks Lightning
+    - Évaluation sur un jeu de test avec métriques détaillées
+    - Sauvegarde et rechargement automatique du modèle et des métadonnées (label encoder, config)
+    Attributs
+    ---------
+    model_save_path : str
+        Répertoire où sont stockés les poids du modèle et les fichiers de configuration.
+    config : dict
+        Configuration des hyperparamètres du modèle multimodal (batch_size, patience, dropout, etc.).
+    model : MultimodalClassifier
+        Instance du modèle entraîné ou chargé.
+    label_enc : sklearn.preprocessing.LabelEncoder
+        Encodeur des classes cibles.
+    device : torch.device
+        Appareil utilisé pour l'entraînement ou l'inférence (CPU ou CUDA).
+        """
+    
     def __init__(self, model_save_path, config=None, mlflow_run_id=None):
         """
+          Initialise l'entraîneur multimodal avec les chemins de sauvegarde et la configuration.
+        Paramètres
+        ----------
+        model_save_path : str
+            Répertoire de sauvegarde des poids du modèle et des métadonnées.
+        config : dict, optional
+            Dictionnaire de configuration pour les hyperparamètres du modèle multimodal.
+            Si None, utilise la configuration par défaut (`DEFAULT_MULTIMODAL_CONFIG`).
+
         MODIFICATION: Ajout du paramètre mlflow_run_id
         """
         self.model_save_path = model_save_path
