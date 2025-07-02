@@ -425,14 +425,14 @@ class MultimodalTrainer:
             train_dataset,
             batch_size=self.config["batch_size"],
             shuffle=True,
-            num_workers=4
+            num_workers=0
         )
 
         val_loader = DataLoader(
             val_dataset,
             batch_size=self.config["batch_size"],
             shuffle=False,
-            num_workers=4
+            num_workers=0
         )
 
         # Création du modèle
@@ -549,7 +549,7 @@ class MultimodalTrainer:
             test_dataset,
             batch_size=self.config["batch_size"],
             shuffle=False,
-            num_workers=4
+            num_workers=0
         )
 
         # Évaluation
