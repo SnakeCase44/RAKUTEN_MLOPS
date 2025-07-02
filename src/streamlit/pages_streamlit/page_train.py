@@ -16,6 +16,16 @@ DEFAULT_HYPERPARAMS = {
     "label_smoothing": 0.15,
 }
 
+def fetch_training_status():
+    try:
+        response = requests.get("http://api:8000/train/status")
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"state": "error", "message": f"Failed to fetch status: {response.status_code}"}
+    except Exception as e:
+        return {"state": "error", "message": str(e)}
+
 def run(role=None):
     st.set_page_config(page_title="Multimodal Trainer", page_icon="🧠")
     st.title("🧠 Entraînement du modèle multimodal")
@@ -39,36 +49,42 @@ def run(role=None):
 
         submitted = st.form_submit_button("🚀 Lancer l'entraînement")
 
-        if submitted:
-            payload = {
-                "batch_size": batch_size,
-                "max_epochs": max_epochs,
-                "lr": lr,
-                "patience": patience,
-                "dropout": dropout,
-                "weight_decay": weight_decay,
-                "hidden_size": hidden_size,
-                "label_smoothing": label_smoothing
-            }
+    if st.button('Refresh Training Status'):
+                status = fetch_training_status()
+                st.json(status)
 
-            st.info("📨 Envoi des hyperparamètres à l'API...")
-            with st.spinner("Entraînement en cours..."):
-                try:
-                    response = requests.post(API_URL, data=payload, timeout=600)
-                    response.raise_for_status()
-                    res = response.json()
+    if submitted:
+        payload = {
+            "batch_size": batch_size,
+            "max_epochs": max_epochs,
+            "lr": lr,
+            "patience": patience,
+            "dropout": dropout,
+            "weight_decay": weight_decay,
+            "hidden_size": hidden_size,
+            "label_smoothing": label_smoothing
+        }
 
-                    if res["status"] == "success":
-                        st.success("✅ Entraînement terminé avec succès !")
-                        with st.expander("📄 Voir le log de sortie"):
-                            st.text(res.get("stdout", "Aucun output retourné"))
-                    else:
-                        st.error(f"❌ Erreur : {res.get('message', 'Erreur inconnue')}")
-                        st.code(res.get("stderr", ""), language="bash")
 
-                except requests.exceptions.RequestException as e:
-                    st.error(f"⚠️ Erreur de connexion à l'API : {e}")
+        st.info("📨 Envoi des hyperparamètres à l'API...")
+        try:
+            response = requests.post(API_URL, data=payload, timeout=10)
+            response.raise_for_status()
+            res = response.json()
 
-                except ValueError:
-                    st.error("⚠️ La réponse de l'API n'était pas au format JSON valide.")
+            if res["status"] == "started":
+                st.success("✅ Entraînement lancé en tâche de fond.")
+                st.info("Vous pouvez consulter l'état ou les résultats dans l'interface MLflow.")
+            else:
+                st.error(f"❌ Erreur : {res.get('message', 'Erreur inconnue')}")
 
+        except requests.exceptions.RequestException as e:
+            st.error(f"⚠️ Erreur de connexion à l'API : {e}")
+
+        except ValueError:
+            st.error("⚠️ La réponse de l'API n'était pas au format JSON valide.")
+
+
+
+if __name__ == "__main__":
+    run()

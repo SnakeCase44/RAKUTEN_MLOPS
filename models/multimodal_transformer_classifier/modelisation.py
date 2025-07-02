@@ -17,6 +17,9 @@ from models.preprocessing_text import clean_text
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from PIL import Image
 import torchvision.transforms as T
+import mlflow
+import mlflow.pytorch
+from pytorch_lightning.loggers import MLFlowLogger
 
 
 # Import des modules de prétraitement et d'augmentation
@@ -318,46 +321,13 @@ class MultimodalDataset(Dataset):
 
 
 class MultimodalTrainer:
-    """
-    Classe de gestion de l'entraînement, de l'évaluation et du chargement d’un modèle de classification multimodale
-    combinant texte et image avec PyTorch Lightning.
-
-    Cette classe encapsule toutes les étapes suivantes :
-    - Préparation des datasets (texte + image)
-    - Application d’augmentations conditionnelles
-    - Entraînement d’un modèle `MultimodalClassifier` avec callbacks Lightning
-    - Évaluation sur un jeu de test avec métriques détaillées
-    - Sauvegarde et rechargement automatique du modèle et des métadonnées (label encoder, config)
-    Attributs
-    ---------
-    model_save_path : str
-        Répertoire où sont stockés les poids du modèle et les fichiers de configuration.
-    config : dict
-        Configuration des hyperparamètres du modèle multimodal (batch_size, patience, dropout, etc.).
-    model : MultimodalClassifier
-        Instance du modèle entraîné ou chargé.
-    label_enc : sklearn.preprocessing.LabelEncoder
-        Encodeur des classes cibles.
-    device : torch.device
-        Appareil utilisé pour l'entraînement ou l'inférence (CPU ou CUDA).
-    """
-
-    def __init__(self, model_save_path, config=None):
+    def __init__(self, model_save_path, config=None, mlflow_run_id=None):
         """
-        Initialise l'entraîneur multimodal avec les chemins de sauvegarde et la configuration.
-
-        Paramètres
-        ----------
-        model_save_path : str
-            Répertoire de sauvegarde des poids du modèle et des métadonnées.
-
-        config : dict, optional
-            Dictionnaire de configuration pour les hyperparamètres du modèle multimodal.
-            Si None, utilise la configuration par défaut (`DEFAULT_MULTIMODAL_CONFIG`).
+        MODIFICATION: Ajout du paramètre mlflow_run_id
         """
-
         self.model_save_path = model_save_path
         self.config = config or DEFAULT_MULTIMODAL_CONFIG
+        self.mlflow_run_id = mlflow_run_id  # NOUVEAU
         print(f"Using config: {self.config}")
         self.model = None
         self.label_enc = None
@@ -365,40 +335,8 @@ class MultimodalTrainer:
 
     def fit(self, df_train, df_val, y_train, y_val, img_model, txt_model, tokenizer):
         """
-        Entraîne le modèle multimodal sur les données texte + image.
-
-        Étapes réalisées :
-        - Encodage des labels
-        - Construction des datasets avec ou sans augmentations
-        - Instanciation du modèle multimodal
-        - Configuration de PyTorch Lightning avec callbacks
-        - Entraînement avec suivi de validation
-        - Chargement du meilleur checkpoint et sauvegarde finale
-
-        Paramètres
-        ----------
-        df_train : pd.DataFrame
-            Données d'entraînement contenant les colonnes `designation`, `description`, `productid`, `imageid`.
-
-        df_val : pd.DataFrame
-            Données de validation (même format que df_train).
-
-        y_train : array-like
-            Labels d'entraînement (format brut, non encodé).
-
-        y_val : array-like
-            Labels de validation (format brut, non encodé).
-
-        img_model : torch.nn.Module
-            Modèle d'encodage des images (doit exposer `get_embedding()`).
-
-        txt_model : torch.nn.Module
-            Modèle d'encodage des textes (doit exposer `get_embedding()`).
-
-        tokenizer : transformers.PreTrainedTokenizer
-            Tokenizer compatible avec le modèle texte (ex. XLM-Roberta).
+        MODIFICATION: Remplacement du CSVLogger par MLFlowLogger
         """
-
         os.makedirs(self.model_save_path, exist_ok=True)
 
         # Encodage des labels
@@ -418,7 +356,6 @@ class MultimodalTrainer:
             img_transform_config=image_augmentation_config
         )
 
-        # Pas d'augmentation pour la validation
         val_dataset = MultimodalDataset(
             df_val,
             y_val_enc,
@@ -450,40 +387,55 @@ class MultimodalTrainer:
             config=self.config
         )
 
-        # Configuration des loggers et callbacks
+        # ============= MODIFICATION PRINCIPALE =============
+        # Configuration des loggers avec MLflow
+        loggers = []
+        
+        # CSV Logger (gardé pour compatibilité)
         csv_logger = CSVLogger(save_dir=self.model_save_path, name="metrics")
+        loggers.append(csv_logger)
+        
+        # MLflow Logger - NOUVEAU
+        if self.mlflow_run_id:
+            mlflow_logger = MLFlowLogger(
+                experiment_name="Late Fusion Multimodal",
+                run_id=self.mlflow_run_id,
+                log_model=False
+                
+            )
+            loggers.append(mlflow_logger)
+        # ===============================================
 
         callbacks = [
-            # Early stopping basé sur F1
             EarlyStopping(
                 monitor='val_f1',
-                patience=self.config.get("patience", 2),  # arrête si pas d'amélioration après N epochs
+                patience=self.config.get("patience", 2),
                 verbose=True,
                 mode='max',
-                min_delta=0.05  # nécessite +5% de gain pour être considéré comme amélioration
+                min_delta=0.05
             ),
-            # Sauvegarde du meilleur modèle (selon val_f1)
             ModelCheckpoint(
                 dirpath=os.path.join(self.model_save_path, "checkpoints"),
-                filename='{epoch}-{val_f1:.4f}',
+                filename='best_model_epoch_{epoch:02d}_f1_{val_f1:.4f}',
                 monitor='val_f1',
                 mode='max',
                 save_top_k=1,
                 verbose=True
             ),
-            # Suivi du learning rate dans les logs
             LearningRateMonitor(logging_interval='epoch')
         ]
 
-        # Entraînement avec configuration complète
+        # ============= MODIFICATION =============
+        # Entraînement avec les deux loggers
         trainer = pl.Trainer(
             max_epochs=self.config["max_epochs"],
             callbacks=callbacks,
-            logger=csv_logger,
+            logger=loggers,  # MODIFIÉ: utilise la liste de loggers
             log_every_n_steps=50,
             gradient_clip_val=1.0,
             default_root_dir=self.model_save_path
         )
+        # ======================================
 
         trainer.fit(self.model, train_loader, val_loader)
 
@@ -502,31 +454,8 @@ class MultimodalTrainer:
 
     def evaluate(self, df_test, y_test, tokenizer, report_path=None):
         """
-        Évalue le modèle entraîné sur un jeu de test.
-
-        Calcule les prédictions sur les données test, puis affiche et enregistre un rapport de classification.
-
-        Paramètres
-        ----------
-        df_test : pd.DataFrame
-            Données de test (même format que df_train).
-
-        y_test : array-like
-            Labels réels (non encodés) à comparer.
-
-        tokenizer : transformers.PreTrainedTokenizer
-            Tokenizer utilisé pour le texte.
-
-        report_path : str, optional
-            Chemin d'enregistrement du rapport de classification. Si None, ne sauvegarde pas.
-
-        Retourne
-        --------
-        str
-            Rapport de classification (au format `sklearn.metrics.classification_report`)
+        MODIFICATION: Ajout du logging MLflow pour les métriques d'évaluation
         """
-
-        """Évalue le modèle multimodal et génère un rapport de classification"""
         if self.model is None or self.label_enc is None:
             raise ValueError("Le modèle ou l'encodeur de labels n'est pas initialisé.")
 
@@ -569,18 +498,58 @@ class MultimodalTrainer:
         y_pred = self.label_enc.inverse_transform(preds)
 
         # Génération du rapport
-        report = classification_report(y_true, y_pred, digits=4, zero_division=0)
+        report = classification_report(y_true, y_pred, digits=4, zero_division=0, output_dict=True)
+        report_str = classification_report(y_true, y_pred, digits=4, zero_division=0)
+
+        # ============= NOUVEAU: LOGGING MLFLOW =============
+        if self.mlflow_run_id:
+            # Log des métriques globales
+            mlflow.log_metrics({
+                "test_accuracy": report['accuracy'],
+                "test_macro_f1": report['macro avg']['f1-score'],
+                "test_weighted_f1": report['weighted avg']['f1-score'],
+                "test_macro_precision": report['macro avg']['precision'],
+                "test_macro_recall": report['macro avg']['recall']
+            })
+            
+            # Log des métriques par classe (optionnel)
+            for class_name, metrics in report.items():
+                if isinstance(metrics, dict) and class_name not in ['accuracy', 'macro avg', 'weighted avg']:
+                    mlflow.log_metrics({
+                        f"test_{class_name}_f1": metrics['f1-score'],
+                        f"test_{class_name}_precision": metrics['precision'],
+                        f"test_{class_name}_recall": metrics['recall']
+                    })
+        # =================================================
 
         # Écriture du rapport dans un fichier
         if report_path:
             os.makedirs(os.path.dirname(report_path), exist_ok=True)
             with open(report_path, "w") as f:
-                f.write(report)
+                f.write(report_str)
 
         print("\n=== Rapport de classification du modèle multimodal ===")
-        print(report)
+        print(report_str)
 
-        return report
+        return report_str
+
+# =============================================================================
+# 3. MODIFICATION DU FICHIER train.py (pour référence)
+# =============================================================================
+
+# Dans train.py, la ligne suivante doit être modifiée :
+# AVANT :
+# trainer = MultimodalTrainer(
+#     model_save_path=MULTIMODAL_MODEL_PATH,
+#     config=custom_config
+# )
+
+# APRÈS :
+# trainer = MultimodalTrainer(
+#     model_save_path=MULTIMODAL_MODEL_PATH,
+#     config=custom_config,
+#     mlflow_run_id=run.info.run_id  # Passer le run ID MLflow
+# )
 
     def save(self):
         """
