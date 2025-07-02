@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 
-from src.fastapi.endpoints import test_api, prediction_api , api_train
+from src.fastapi.endpoints import test_api, prediction_api , api_train, api_evaluate
 
 app = FastAPI(title="Rakuten Multimodal API")
 
 app.include_router(test_api.router)
 app.include_router(api_train.router)
 app.include_router(prediction_api.router)
+app.include_router(api_evaluate.router)

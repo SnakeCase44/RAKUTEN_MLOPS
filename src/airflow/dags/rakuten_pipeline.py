@@ -72,4 +72,27 @@ with DAG(
         execution_timeout=timedelta(hours=2)
     )
 
-    check_env >> run_tests >> train_model
+    # Évaluation du modèle via API
+    evaluate_model = BashOperator(
+        task_id='evaluate_model',
+        bash_command="""
+            echo "=== Evaluating model via FastAPI ==="
+            RESPONSE=$(curl -s http://api:8000/evaluate)
+            echo "Raw response: $RESPONSE"
+
+            STATUS=$(echo $RESPONSE | python3 -c "import sys, json; print(json.load(sys.stdin)['status'])")
+            if [ \"$STATUS\" != \"success\" ]; then
+                echo "Model evaluation failed"
+                exit 1
+            fi
+
+            echo "=== Classification Report ==="
+            echo $RESPONSE | python3 -c "import sys, json; data = json.load(sys.stdin)['metrics']; print(f'Accuracy              : {data[\"accuracy\"]:.4f}'); print(f'Macro Avg Precision   : {data[\"macro_avg_precision\"]:.4f}'); print(f'Macro Avg Recall      : {data[\"macro_avg_recall\"]:.4f}'); print(f'Macro Avg F1-score    : {data[\"macro_avg_f1\"]:.4f}'); print(f'Weighted Avg Precision: {data[\"weighted_avg_precision\"]:.4f}'); print(f'Weighted Avg Recall   : {data[\"weighted_avg_recall\"]:.4f}'); print(f'Weighted Avg F1-score : {data[\"weighted_avg_f1\"]:.4f}')"
+
+            echo "=== Evaluation completed ==="
+        """,
+        execution_timeout=timedelta(minutes=5)
+    )
+
+    # Dépendances
+    check_env >> run_tests >> train_model >> evaluate_model
