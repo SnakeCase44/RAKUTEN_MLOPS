@@ -335,6 +335,31 @@ class MultimodalTrainer:
 
     def fit(self, df_train, df_val, y_train, y_val, img_model, txt_model, tokenizer):
         """
+        Entraîne le modèle multimodal sur les données texte + image.
+        Étapes réalisées :
+        - Encodage des labels
+        - Construction des datasets avec ou sans augmentations
+        - Instanciation du modèle multimodal
+        - Configuration de PyTorch Lightning avec callbacks
+        - Entraînement avec suivi de validation
+        - Chargement du meilleur checkpoint et sauvegarde finale
+        Paramètres
+        ----------
+        df_train : pd.DataFrame
+            Données d'entraînement contenant les colonnes `designation`, `description`, `productid`, `imageid`.
+        df_val : pd.DataFrame
+            Données de validation (même format que df_train).
+        y_train : array-like
+            Labels d'entraînement (format brut, non encodé).
+        y_val : array-like
+            Labels de validation (format brut, non encodé).
+        img_model : torch.nn.Module
+            Modèle d'encodage des images (doit exposer `get_embedding()`).
+        txt_model : torch.nn.Module
+            Modèle d'encodage des textes (doit exposer `get_embedding()`).
+        tokenizer : transformers.PreTrainedTokenizer
+            Tokenizer compatible avec le modèle texte (ex. XLM-Roberta).
+            
         MODIFICATION: Remplacement du CSVLogger par MLFlowLogger
         """
         os.makedirs(self.model_save_path, exist_ok=True)
@@ -454,7 +479,24 @@ class MultimodalTrainer:
 
     def evaluate(self, df_test, y_test, tokenizer, report_path=None):
         """
-        MODIFICATION: Ajout du logging MLflow pour les métriques d'évaluation
+              
+        Évalue le modèle entraîné sur un jeu de test.
+        Calcule les prédictions sur les données test, puis affiche et enregistre un rapport de classification.
+        Paramètres
+        ----------
+        df_test : pd.DataFrame
+            Données de test (même format que df_train).
+        y_test : array-like
+            Labels réels (non encodés) à comparer.
+        tokenizer : transformers.PreTrainedTokenizer
+            Tokenizer utilisé pour le texte.
+        report_path : str, optional
+            Chemin d'enregistrement du rapport de classification. Si None, ne sauvegarde pas.
+        Retourne
+        --------
+        str
+            Rapport de classification (au format `sklearn.metrics.classification_report`)
+            MODIFICATION: Ajout du logging MLflow pour les métriques d'évaluation
         """
         if self.model is None or self.label_enc is None:
             raise ValueError("Le modèle ou l'encodeur de labels n'est pas initialisé.")
