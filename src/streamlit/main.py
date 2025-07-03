@@ -27,7 +27,7 @@ if token:
             # Définir les pages accessibles en fonction du rôle
             if role == "admin":
                 st.header("👑 Admin Panel")
-                accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit", "Dashoboard MLflow"]
+                accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit", "Dashoboard MLflow", "Airflow"]
             elif role == "dev":
                 st.header("👨‍💻 Espace Dev")
                 accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit"]
@@ -58,6 +58,9 @@ if token:
             elif page == "Dashboard MLflow":
                 from pages_streamlit import page_MLflow
                 page_MLflow.run(role)
+            elif page == "Airflow":
+                from pages_streamlit import page_airflow
+                page_airflow.run(role)
         else:
             st.error("Token invalide ou expiré.")
             st.markdown("[Connectez-vous ici](http://127.0.0.1:8000/)")
@@ -72,7 +75,8 @@ page_switch = {
     "Accueil": page_home.run,
     "Entraînement modèle": page_train.run,
     "Classification produit": page_predict.run,
-    "Dashboard MLflow":page_MLflow.run
+    "Dashboard MLflow":page_MLflow.run,
+    "Airflow": page_airflow.run,
 }
 
 page_switch[st.session_state.page]()
