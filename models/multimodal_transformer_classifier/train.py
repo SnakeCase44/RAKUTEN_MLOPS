@@ -6,6 +6,11 @@ from models.multimodal_transformer_classifier.modelisation import DEFAULT_MULTIM
 from models.rakuten_efficientnet_image.modelisation import DEFAULT_IMAGE_CLASSIFIER_CONFIG
 from models.rakuten_transformer_text.modelisation import TRANSFORMER_CONFIG
 import argparse
+import mlflow
+import mlflow.pytorch
+import pickle
+from sklearn.metrics import classification_report
+import json
 
 # Import des modèles
 from models.multimodal_transformer_classifier.modelisation import (
@@ -40,6 +45,9 @@ def load_data(split_dir: Path):
 
 def main():
 
+    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
+    mlflow.set_experiment("Late Fusion Multimodal")  
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", type=int, default=DEFAULT_MULTIMODAL_CONFIG["batch_size"])
     parser.add_argument("--max_epochs", type=int, default=DEFAULT_MULTIMODAL_CONFIG["max_epochs"])
@@ -53,84 +61,110 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"Using batch_size: {args.batch_size}")
-    print(f"Using max_epochs: {args.max_epochs}")
-    print(f"Using lr: {args.lr}")
-    print(f"Using patience: {args.patience}")
-    print(f"Using dropout: {args.dropout}")
-    print(f"Using weight_decay: {args.weight_decay}")
-    print(f"Using hidden_size: {args.hidden_size}")
-    print(f"Using label_smoothing: {args.label_smoothing}")
+    with mlflow.start_run() as run:
+            # Log des hyperparamètres
+            mlflow.log_params({
+                "batch_size": args.batch_size,
+                "max_epochs": args.max_epochs,
+                "lr": args.lr,
+                "patience": args.patience,
+                "dropout": args.dropout,
+                "weight_decay": args.weight_decay,
+                "hidden_size": args.hidden_size,
+                "label_smoothing": args.label_smoothing
+            })
 
-    # Vérifier que les chemins existent
-    os.makedirs(MULTIMODAL_MODEL_PATH, exist_ok=True)
+            print(f"MLflow Run ID: {run.info.run_id}")
+            print(f"Using batch_size: {args.batch_size}")
+            print(f"Using max_epochs: {args.max_epochs}")
+            print(f"Using lr: {args.lr}")
+            print(f"Using patience: {args.patience}")
+            print(f"Using dropout: {args.dropout}")
+            print(f"Using weight_decay: {args.weight_decay}")
+            print(f"Using hidden_size: {args.hidden_size}")
+            print(f"Using label_smoothing: {args.label_smoothing}")
 
-    # Chargement des modèles pré-entraînés
-    print("Chargement du modèle image...")
-    model_img, img_label_enc = load_image_model(
-        IMG_MODEL_PATH,
-        IMG_META_PATH,
-        DEFAULT_IMAGE_CLASSIFIER_CONFIG
-    )
+            # Vérifier que les chemins existent
+            os.makedirs(MULTIMODAL_MODEL_PATH, exist_ok=True)
 
-    print("Chargement du modèle texte...")
-    model_txt, txt_label_enc = load_text_model(
-        TXT_MODEL_PATH,
-        TXT_META_PATH
-    )
+            # Chargement des modèles pré-entraînés
+            print("Chargement du modèle image...")
+            model_img, img_label_enc = load_image_model(
+                IMG_MODEL_PATH,
+                IMG_META_PATH,
+                DEFAULT_IMAGE_CLASSIFIER_CONFIG
+            )
 
-    # Chargement du tokenizer pour le texte
-    tokenizer = AutoTokenizer.from_pretrained(TRANSFORMER_CONFIG["model_name"])
+            print("Chargement du modèle texte...")
+            model_txt, txt_label_enc = load_text_model(
+                TXT_MODEL_PATH,
+                TXT_META_PATH
+            )
 
-    # Chargement des données depuis les splits existants
-    print(f"Chargement des données depuis {SPLIT_DIR}")
-    df_X_train, df_X_val, df_y_train, df_y_val = load_data(SPLIT_DIR)
+            # Chargement du tokenizer pour le texte
+            tokenizer = AutoTokenizer.from_pretrained(TRANSFORMER_CONFIG["model_name"])
 
-    # Extraction des labels
-    y_train = df_y_train["prdtypecode"].values
-    y_val = df_y_val["prdtypecode"].values
+            # Chargement des données depuis les splits existants
+            print(f"Chargement des données depuis {SPLIT_DIR}")
+            df_X_train, df_X_val, df_y_train, df_y_val = load_data(SPLIT_DIR)
 
-    # Création du dictionnaire de configuration à partir des arguments
-    custom_config = {
-    "batch_size": args.batch_size,
-    "max_epochs": args.max_epochs,
-    "lr": args.lr,
-    "patience": args.patience,
-    "dropout": args.dropout,
-    "weight_decay": args.weight_decay,
-    "hidden_size": args.hidden_size,
-    "label_smoothing": args.label_smoothing
-}
+            # Extraction des labels
+            y_train = df_y_train["prdtypecode"].values
+            y_val = df_y_val["prdtypecode"].values
 
-# Utilisation de la configuration personnalisée
-    trainer = MultimodalTrainer(
-    model_save_path=MULTIMODAL_MODEL_PATH,
-    config=custom_config
-    )
+            # Création du dictionnaire de configuration à partir des arguments
+            custom_config = {
+                "batch_size": args.batch_size,
+                "max_epochs": args.max_epochs,
+                "lr": args.lr,
+                "patience": args.patience,
+                "dropout": args.dropout,
+                "weight_decay": args.weight_decay,
+                "hidden_size": args.hidden_size,
+                "label_smoothing": args.label_smoothing
+            }
 
-    # Entraînement
-    print("Début de l'entraînement du modèle multimodal...")
-    trainer.fit(
-        df_train=df_X_train,
-        df_val=df_X_val,
-        y_train=y_train,
-        y_val=y_val,
-        img_model=model_img,
-        txt_model=model_txt,
-        tokenizer=tokenizer
-    )
+            # Utilisation de la configuration personnalisée avec MLflow
+            trainer = MultimodalTrainer(
+                model_save_path=MULTIMODAL_MODEL_PATH,
+                config=custom_config,
+                mlflow_run_id=run.info.run_id  # Passer le run ID MLflow
+            )
 
-    # Évaluation
-    print("Évaluation du modèle multimodal...")
-    trainer.evaluate(
-        df_test=df_X_val,  # Utilisation des données de validation pour l'évaluation
-        y_test=y_val,
-        tokenizer=tokenizer,
-        report_path=MULTIMODAL_REPORT_PATH
-    )
+            # Entraînement
+            print("Début de l'entraînement du modèle multimodal...")
+            trainer.fit(
+                df_train=df_X_train,
+                df_val=df_X_val,
+                y_train=y_train,
+                y_val=y_val,
+                img_model=model_img,
+                txt_model=model_txt,
+                tokenizer=tokenizer
+            )
 
-    print(f"Entraînement et évaluation terminés. Rapport sauvegardé dans {MULTIMODAL_REPORT_PATH}")
+            # Évaluation
+            print("Évaluation du modèle multimodal...")
+            metrics = trainer.evaluate(
+                df_test=df_X_val,
+                y_test=y_val,
+                tokenizer=tokenizer,
+                report_path=MULTIMODAL_REPORT_PATH
+            )                   
 
+            print(f"Entraînement et évaluation terminés. Rapport sauvegardé dans {MULTIMODAL_REPORT_PATH}")
+
+            # Log du modèle multimodal
+            mlflow.pytorch.log_model(trainer.model, artifact_path="multimodal_model")
+
+            # Log du label encoder
+            label_path = MULTIMODAL_MODEL_PATH / "label_encoder.pkl"
+            with open(label_path, "wb") as f:
+                pickle.dump(trainer.label_enc, f)
+            mlflow.log_artifact(str(label_path), artifact_path="artifacts")
+
+            # Log du rapport texte
+            mlflow.log_artifact(MULTIMODAL_REPORT_PATH, artifact_path="reports")
 
 if __name__ == "__main__":
     main()

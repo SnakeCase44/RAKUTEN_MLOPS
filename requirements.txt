@@ -46,3 +46,6 @@ streamlit
 plotly
 altair
 
+# Versionning
+mlflow
+

@@ -16,14 +16,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  
+
 
   api:
     build:
       context: .
       dockerfile: src/fastapi/Dockerfile
+    image: rakuten_fastapi
     container_name: rakuten_api
-    image: rakuten_api
     ports:
       - "8000:8000"
     environment:
@@ -31,6 +31,7 @@ services:
       MODEL_PATH: /app/models/multimodal_transformer_classifier/model
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      MLFLOW_TRACKING_URI: http://mlflow:5000
     volumes:
       - ./models:/app/models:rw
       - ./logs:/app/logs
@@ -45,10 +46,11 @@ services:
     #      devices:
     #        - capabilities: [gpu]
     #shm_size: 8gb
+
   init_db:
     image: rakuten_api  # rutilisation image `api`
     container_name: rakuten_init_db
-    depends_on:     
+    depends_on:
       postgres:
           condition: service_healthy
       api:
@@ -67,6 +69,7 @@ services:
     environment:
       API_URL: http://api:8000
       DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/rakuten_auth
+      MLFLOW_TRACKING_URI: http://mlflow:5000
     volumes:
       - ./models:/app/models:ro
       - ./dataset:/app/dataset:ro
@@ -74,6 +77,19 @@ services:
     depends_on:
       - api
       - postgres
+    restart: unless-stopped
+
+  mlflow:
+    build:
+      context: ./src/mlflow
+      dockerfile: Dockerfile
+    container_name: rakuten_mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlflow/mlruns:/mlflow/mlruns
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
     restart: unless-stopped
 
 volumes:
