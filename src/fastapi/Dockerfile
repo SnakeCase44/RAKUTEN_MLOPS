@@ -6,7 +6,9 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     libgomp1 \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
+
 
 # Copier les fichiers nécessaires depuis la racine
 COPY requirements.txt setup.py ./
