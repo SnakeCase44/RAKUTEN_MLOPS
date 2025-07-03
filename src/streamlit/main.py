@@ -27,7 +27,7 @@ if token:
             # Définir les pages accessibles en fonction du rôle
             if role == "admin":
                 st.header("👑 Admin Panel")
-                accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit", "Dashoboard MLflow", "Airflow"]
+                accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit", "Dashboard MLflow", "Airflow"]
             elif role == "dev":
                 st.header("👨‍💻 Espace Dev")
                 accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit"]
@@ -72,11 +72,11 @@ else:
     st.markdown("[Connectez-vous ici](http://127.0.0.1:8000/)")
 
 page_switch = {
-    "Accueil": page_home.run,
-    "Entraînement modèle": page_train.run,
-    "Classification produit": page_predict.run,
-    "Dashboard MLflow":page_MLflow.run,
-    "Airflow": page_airflow.run,
+    "Accueil": page_home.run(role),
+    "Entraînement modèle": page_train.run(role),
+    "Classification produit": page_predict.run(role),
+    "Dashboard MLflow":page_MLflow.run(role),
+    "Airflow": page_airflow.run(role),
 }
 
 page_switch[st.session_state.page]()
