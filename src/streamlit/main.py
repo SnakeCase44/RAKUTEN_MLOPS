@@ -15,7 +15,7 @@ token = st.session_state.get("access_token")
 if token:
     headers = {"Authorization": f"Bearer {token}"}
     try:
-        response = requests.get("http://host.docker.internal:8000/users/me", headers=headers)
+        response = requests.get("http://rakuten_api:8000/users/me", headers=headers)
         if response.status_code == 200:
             user = response.json()
             st.success(f"Bienvenue {user['username']} !")
