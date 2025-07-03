@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, status, APIRouter, Request, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import Optional
@@ -10,7 +10,6 @@ import psycopg2
 from psycopg2.extras import DictCursor
 from passlib.context import CryptContext
 
-# Initialisation FastAPI
 app = FastAPI()
 router = APIRouter()
 templates = Jinja2Templates(directory="src/fastapi/endpoints")
@@ -20,7 +19,7 @@ def get_db_connection():
     return psycopg2.connect(
         dbname="rakuten_auth",
         user="admin",
-        password="admin123",  # À remplacer par une variable d’environnement en production
+        password="admin123",
         host="postgres",
         port="5432"
     )
@@ -37,7 +36,7 @@ class UserInDB(User):
     hashed_password: str
 
 # Sécurité
-SECRET_KEY = "supersecretkey"  # Remplacer par une variable d’environnement sécurisée
+SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -86,6 +85,7 @@ def get_user(username: str):
     return None
 
 # Dépendances de sécurité
+
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     return decode_access_token(token)
 
@@ -94,7 +94,11 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
         raise HTTPException(status_code=400, detail="Utilisateur désactivé")
     return current_user
 
+
+
 # Routes
+
+
 @router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = get_user(form_data.username)
@@ -107,13 +111,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 @router.get("/test-login", response_class=HTMLResponse)
 async def read_login(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
-
-@router.post("/form-login")
-async def form_login(request: Request, username: str = Form(...), password: str = Form(...)):
-    user = get_user(username)
-    if not user or not verify_password(password, user.hashed_password):
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Identifiants invalides"})
-    return {"message": f"Bienvenue, {user.username} ! Authentification réussie."}
 
 @router.get("/users/me")
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
@@ -141,5 +138,18 @@ async def client_only(current_user: User = Depends(get_current_active_user)):
 def hello():
     return {"message": "Hello, Rakuten World!"}
 
-# Lier le routeur à l'application
+
+@router.get("/", include_in_schema=False)
+async def root_redirect():
+    print(">>> Redirection depuis / vers /test-login")
+    return RedirectResponse(url="/test-login")
+
+@app.middleware("http")
+async def redirect_unauthorized_requests(request: Request, call_next):
+    response = await call_next(request)
+    print(f">>> Requête {request.url.path}, status: {response.status_code}")
+    if response.status_code in (401, 403, 404):
+        return RedirectResponse(url="/test-login")
+    return response
+
 app.include_router(router)

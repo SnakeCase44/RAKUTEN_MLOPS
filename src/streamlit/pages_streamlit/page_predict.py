@@ -37,10 +37,12 @@ CODE2LABEL = {
     2905: "Jeu PC",
 }
 
-
-def run():
+def run(role=None):
     st.title("🎯 Classification Multimodale")
     st.write("Uploadez une image et saisissez une description pour classifier le produit.")
+
+    if role:
+        st.info(f"Vous êtes connecté en tant que {role}.")
 
     with st.form("predict_form"):
         col1, col2 = st.columns(2)
@@ -63,56 +65,56 @@ def run():
 
             if uploaded_file:
                 image = Image.open(uploaded_file)
-                st.image(image, caption=f"Image: {uploaded_file.name}", use_container_width=True)
+                st.image(image, caption=f"Image: {uploaded_file.name}", use_column_width=True)
 
         submitted = st.form_submit_button("🚀 Prédire")
 
-    if submitted:
-        if not text_input or not text_input.strip():
-            st.error("❌ Veuillez saisir une description")
-            return
+        if submitted:
+            if not text_input or not text_input.strip():
+                st.error("❌ Veuillez saisir une description")
+                return
 
-        if not uploaded_file:
-            st.error("❌ Veuillez sélectionner une image")
-            return
+            if not uploaded_file:
+                st.error("❌ Veuillez sélectionner une image")
+                return
 
-        st.info("📨 Envoi à l'API pour classification...")
+            st.info("📨 Envoi à l'API pour classification...")
 
-        with st.spinner("Classification en cours... (peut prendre du temps si premier chargement)"):
-            try:
-                files = {'image': (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
-                data = {'text': text_input}
+            with st.spinner("Classification en cours... (peut prendre du temps si premier chargement)"):
+                try:
+                    files = {'image': (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
+                    data = {'text': text_input}
 
-                response = requests.post(PREDICT_URL, files=files, data=data)
-                response.raise_for_status()
-                result = response.json()
+                    response = requests.post(PREDICT_URL, files=files, data=data)
+                    response.raise_for_status()
+                    result = response.json()
 
-                if result.get("success"):
-                    pred_code = result["predicted_class"]
-                    confidence = result["confidence"]
+                    if result.get("success"):
+                        pred_code = result["predicted_class"]
+                        confidence = result["confidence"]
 
-                    # Conversion du code en libellé
-                    try:
-                        pred_code_int = int(pred_code)
-                        pred_label_text = CODE2LABEL.get(pred_code_int, f"Classe inconnue ({pred_code_int})")
+                        # Conversion du code en libellé
+                        try:
+                            pred_code_int = int(pred_code)
+                            pred_label_text = CODE2LABEL.get(pred_code_int, f"Classe inconnue ({pred_code_int})")
 
-                        st.success(f"✅ Classe prédite : **{pred_code_int} - {pred_label_text}**")
+                            st.success(f"✅ Classe prédite : **{pred_code_int} - {pred_label_text}**")
 
-                    except ValueError:
-                        st.success(f"✅ Classe prédite : **{pred_code}**")
+                        except ValueError:
+                            st.success(f"✅ Classe prédite : **{pred_code}**")
 
-                    with st.expander("📋 Détails de la prédiction"):
-                        st.json({
-                            "Classe prédite": pred_code,
-                            "Libellé": pred_label_text if 'pred_label_text' in locals() else "N/A",
-                            "Confiance": f"{confidence:.4f}",
-                            "Device utilisé": result.get("device_used", "N/A"),
-                            "Nom fichier": result.get("image_filename", "N/A")
-                        })
-                else:
-                    st.error(f"❌ Erreur : {result.get('error', 'Erreur inconnue')}")
+                        with st.expander("📋 Détails de la prédiction"):
+                            st.json({
+                                "Classe prédite": pred_code,
+                                "Libellé": pred_label_text if 'pred_label_text' in locals() else "N/A",
+                                "Confiance": f"{confidence:.4f}",
+                                "Device utilisé": result.get("device_used", "N/A"),
+                                "Nom fichier": result.get("image_filename", "N/A")
+                            })
+                    else:
+                        st.error(f"❌ Erreur : {result.get('error', 'Erreur inconnue')}")
 
-            except requests.exceptions.RequestException as e:
-                st.error(f"⚠️ Erreur de connexion : {e}")
-            except ValueError:
-                st.error("⚠️ Réponse API invalide")
+                except requests.exceptions.RequestException as e:
+                    st.error(f"⚠️ Erreur de connexion : {e}")
+                except ValueError:
+                    st.error("⚠️ Réponse API invalide")

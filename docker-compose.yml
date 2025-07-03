@@ -16,22 +16,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  init_db:
-    image: rakuten_fastapi  # rutilisation image `api`
-    container_name: rakuten_init_db
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: ["python", "src/fastapi/endpoints/dbcrypt.py"]
-    environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    restart: "no"
+  
 
   api:
     build:
       context: .
       dockerfile: src/fastapi/Dockerfile
     container_name: rakuten_api
+    image: rakuten_api
     ports:
       - "8000:8000"
     environment:
@@ -53,7 +45,18 @@ services:
     #      devices:
     #        - capabilities: [gpu]
     #shm_size: 8gb
-
+  init_db:
+    image: rakuten_api  # rutilisation image `api`
+    container_name: rakuten_init_db
+    depends_on:     
+      postgres:
+          condition: service_healthy
+      api:
+        condition: service_started
+    command: ["python", "src/fastapi/endpoints/dbcrypt.py"]
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    restart: "no"
   streamlit:
     build:
       context: ./src/streamlit

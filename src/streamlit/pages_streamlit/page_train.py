@@ -16,10 +16,13 @@ DEFAULT_HYPERPARAMS = {
     "label_smoothing": 0.15,
 }
 
-def run():
+def run(role=None):
     st.set_page_config(page_title="Multimodal Trainer", page_icon="🧠")
     st.title("🧠 Entraînement du modèle multimodal")
     st.write("Ajustez les hyperparamètres ci-dessous puis lancez l'entraînement.")
+
+    if role:
+        st.info(f"Vous êtes connecté en tant que {role}.")
 
     with st.form("train_form"):
         col1, col2 = st.columns(2)
@@ -36,39 +39,36 @@ def run():
 
         submitted = st.form_submit_button("🚀 Lancer l'entraînement")
 
-    if submitted:
-        payload = {
-            "batch_size": batch_size,
-            "max_epochs": max_epochs,
-            "lr": lr,
-            "patience": patience,
-            "dropout": dropout,
-            "weight_decay": weight_decay,
-            "hidden_size": hidden_size,
-            "label_smoothing": label_smoothing
-        }
+        if submitted:
+            payload = {
+                "batch_size": batch_size,
+                "max_epochs": max_epochs,
+                "lr": lr,
+                "patience": patience,
+                "dropout": dropout,
+                "weight_decay": weight_decay,
+                "hidden_size": hidden_size,
+                "label_smoothing": label_smoothing
+            }
 
-        st.info("📨 Envoi des hyperparamètres à l'API...")
-        with st.spinner("Entraînement en cours..."):
+            st.info("📨 Envoi des hyperparamètres à l'API...")
+            with st.spinner("Entraînement en cours..."):
+                try:
+                    response = requests.post(API_URL, data=payload, timeout=600)
+                    response.raise_for_status()
+                    res = response.json()
 
-            try:
-                response = requests.post(API_URL, data=payload, timeout=600)
-                response.raise_for_status()
-                res = response.json()
+                    if res["status"] == "success":
+                        st.success("✅ Entraînement terminé avec succès !")
+                        with st.expander("📄 Voir le log de sortie"):
+                            st.text(res.get("stdout", "Aucun output retourné"))
+                    else:
+                        st.error(f"❌ Erreur : {res.get('message', 'Erreur inconnue')}")
+                        st.code(res.get("stderr", ""), language="bash")
 
-                if res["status"] == "success":
-                    st.success("✅ Entraînement terminé avec succès !")
-                    with st.expander("📄 Voir le log de sortie"):
-                        st.text(res.get("stdout", "Aucun output retourné"))
-                else:
-                    st.error(f"❌ Erreur : {res.get('message', 'Erreur inconnue')}")
-                    st.code(res.get("stderr", ""), language="bash")
+                except requests.exceptions.RequestException as e:
+                    st.error(f"⚠️ Erreur de connexion à l'API : {e}")
 
-            except requests.exceptions.RequestException as e:
-                st.error(f"⚠️ Erreur de connexion à l'API : {e}")
+                except ValueError:
+                    st.error("⚠️ La réponse de l'API n'était pas au format JSON valide.")
 
-            except ValueError:
-                st.error("⚠️ La réponse de l'API n'était pas au format JSON valide.")
-
-if __name__ == "__main__":
-    run()

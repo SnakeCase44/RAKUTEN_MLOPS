@@ -120,11 +120,8 @@
                 const data = await response.json();
                 localStorage.setItem('access_token', data.access_token);
 
-                errorDiv.style.display = 'none';
-                successDiv.style.display = 'block';
-
-                // Rediriger ou afficher info utilisateur
-                // window.location.href = "/dashboard"; // optionnel
+                // Redirection vers Streamlit avec token en query param
+                window.location.href = `http://127.0.0.1:8501?token=${data.access_token}`;
             } else {
                 const error = await response.json();
                 errorDiv.textContent = error.detail || 'Erreur de connexion';
