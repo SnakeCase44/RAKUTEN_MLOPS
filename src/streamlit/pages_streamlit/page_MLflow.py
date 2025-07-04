@@ -3,7 +3,7 @@ import streamlit as st
 def run(role=None):
     st.title("Dashboard MLflow")
 
-    mlflow_url = "http://localhost:5000"
+    mlflow_url = "http://localhost:5005"
 
     if role:
         st.info(f"Vous êtes connecté en tant que {role}.")

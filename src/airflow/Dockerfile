@@ -1,14 +1,31 @@
-FROM rakuten_fastapi
+FROM python:3.11-slim
 
-# Installer curl (et éventuellement d'autres utilitaires utiles)
+WORKDIR /app
+
+# Installation des dépendances système minimales
 RUN apt-get update && apt-get install -y \
+    libglib2.0-0 \
+    libgomp1 \
+    postgresql-client \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Installer Apache Airflow
-RUN pip install apache-airflow==2.9.1
+# Copier les fichiers nécessaires depuis le contexte parent
+COPY ../../requirements.txt ../../setup.py ./
 
-# Définir les variables d'environnement
+# Installation des dépendances FastAPI + Airflow
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install -e . && \
+    pip install apache-airflow==2.9.1
+
+# Copier le code depuis le contexte parent
+COPY ../../src/ ./src/
+COPY ../../models/ ./models/
+COPY ../../tests/ ./tests/
+COPY ../../config.py ./
+
+# Définir les variables d'environnement Airflow
 ENV AIRFLOW_HOME=/opt/airflow
 ENV PATH="/root/.local/bin:$PATH"
 
