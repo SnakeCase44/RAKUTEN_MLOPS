@@ -70,13 +70,3 @@ if token:
 else:
     st.warning("Connectez-vous via FastAPI d’abord.")
     st.markdown("[Connectez-vous ici](http://127.0.0.1:8000/)")
-
-page_switch = {
-    "Accueil": page_home.run(role),
-    "Entraînement modèle": page_train.run(role),
-    "Classification produit": page_predict.run(role),
-    "Dashboard MLflow":page_MLflow.run(role),
-    "Airflow": page_airflow.run(role),
-}
-
-page_switch[st.session_state.page]()

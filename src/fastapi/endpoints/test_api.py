@@ -97,8 +97,6 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
 
 
 # Routes
-
-
 @router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = get_user(form_data.username)

@@ -48,4 +48,5 @@ altair
 
 # Versionning
 mlflow
+dvc[s3]
 
