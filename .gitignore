@@ -29,7 +29,7 @@ test_multimodal.ipynb
 *.csv
 *.json
 *.pth
-mlflow/mlruns/*
+src/mlflow/mlruns/*
 
 # === IDE : PYCHARM ===
 .idea/

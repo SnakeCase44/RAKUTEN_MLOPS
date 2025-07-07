@@ -452,7 +452,7 @@ class MultimodalTrainer:
         csv_logger = CSVLogger(save_dir=self.model_save_path, name="metrics")
         loggers.append(csv_logger)
         
-        # MLflow Logger - NOUVEAU
+        # MLflow Logger
         if self.mlflow_run_id:
             mlflow_logger = MLFlowLogger(
                 experiment_name="Late Fusion Multimodal",
