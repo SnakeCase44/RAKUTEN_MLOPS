@@ -5,6 +5,8 @@ pandas
 scikit-learn
 setuptools
 tqdm
+python-dotenv
+
 
 # NLP / Vision
 transformers

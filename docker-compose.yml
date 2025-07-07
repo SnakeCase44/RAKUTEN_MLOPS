@@ -69,12 +69,12 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
-    #deploy:
-    #  resources:
-    #    reservations:
-    #      devices:
-    #        - capabilities: [gpu]
-    #shm_size: 8gb
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    shm_size: 8gb
 
   streamlit:
     build:
@@ -102,17 +102,17 @@ services:
       dockerfile: Dockerfile
     container_name: rakuten_mlflow
     ports:
-      - "5000:5000"
+      - "5005:5005"
     volumes:
-      - ./mlflow/mlruns:/mlflow/mlruns
+      - ./src/mlflow/mlruns:/mlflow/mlruns
     environment:
       MLFLOW_TRACKING_URI: http://mlflow:5005
     restart: unless-stopped
 
   airflow:
     build:
-      context: ./src/airflow
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: src/airflow/Dockerfile
     container_name: rakuten_airflow
     restart: always
     depends_on:
@@ -133,9 +133,11 @@ services:
     volumes:
       - ./src/airflow/dags:/opt/airflow/dags
       - ./src:/app/src
-      - ./models:/app/models
+      - ./models:/app/models:rw
       - ./tests:/app/tests
       - ./dataset:/app/dataset
+      - ./src/airflow/webserver_config.py:/opt/airflow/webserver_config.py
+      - .env:/opt/airflow/.env
     ports:
       - "8080:8080"
     shm_size: 8gb
