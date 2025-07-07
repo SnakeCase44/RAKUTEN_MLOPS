@@ -4,7 +4,7 @@ RUN pip install mlflow
 
 WORKDIR /app
 
-RUN mkdir -p /mlflow/mlruns
+#RUN mkdir -p /mlflow/mlruns
 
 EXPOSE 5005
 
