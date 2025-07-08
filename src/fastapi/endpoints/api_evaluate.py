@@ -6,7 +6,6 @@ import re
 from config import MULTIMODAL_REPORT_PATH
 
 router = APIRouter()
-
 REPORT_PATH = MULTIMODAL_REPORT_PATH
 
 @router.get("/evaluate")
@@ -39,9 +38,16 @@ async def evaluate_model():
                         except ValueError:
                             continue  # ignore badly formatted lines
 
+        # Impression dans les logs pour Airflow
+        with open(REPORT_PATH, "r", encoding="utf-8") as f:
+            full_report = f.read()
+            print("=== Rapport complet de classification ===")
+            print(full_report)
+
         if not metrics:
             return JSONResponse(status_code=500, content={"message": "No valid metrics found in report."})
 
         return {"status": "success", "metrics": metrics}
+
     except Exception as e:
         return JSONResponse(status_code=500, content={"message": f"Error reading report: {str(e)}"})

@@ -6,10 +6,10 @@ WORKDIR /app
 
 RUN mkdir -p /mlflow/mlruns
 
-EXPOSE 5000
+EXPOSE 5005
 
 CMD ["mlflow", "server", \
      "--host", "0.0.0.0", \
-     "--port", "5000", \
+     "--port", "5005", \
      "--backend-store-uri", "file:///mlflow/mlruns", \
      "--default-artifact-root", "file:///mlflow/mlruns"]

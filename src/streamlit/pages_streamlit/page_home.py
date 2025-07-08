@@ -7,16 +7,6 @@ def run(role=None):
     with col1:
         st.markdown("<div style='margin-bottom: 2rem;'></div>", unsafe_allow_html=True)
 
-        # Affichage dynamique du menu en fonction du rôle
-        menu_items = []
-        if role in ["admin", "dev"]:
-            menu_items.append("- [Accueil](#accueil)")
-            menu_items.append("- [Entraînement modèle](#entraînement-modèle)")
-        elif role == "client":
-            menu_items.append("- [Accueil](#accueil)")
-
-        st.markdown("\n".join(menu_items), unsafe_allow_html=True)
-
     with col2:
         st.subheader("Accueil")
         st.markdown("<div style='margin-bottom: 2rem;'></div>", unsafe_allow_html=True)

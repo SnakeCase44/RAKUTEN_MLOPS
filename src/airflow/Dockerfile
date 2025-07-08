@@ -16,7 +16,7 @@ ENV PATH="/root/.local/bin:$PATH"
 RUN mkdir -p /opt/airflow/logs /opt/airflow/dags /opt/airflow/plugins
 
 # Script de démarrage
-COPY start-airflow.sh /start-airflow.sh
+COPY src/airflow/start-airflow.sh /start-airflow.sh
 RUN chmod +x /start-airflow.sh
 
 CMD ["/start-airflow.sh"]
