@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rakuten Services Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .service-card:hover::before {
+            left: 100%;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border-color: #667eea;
+        }
+        
+        .service-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .service-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .service-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .service-link {
+            display: inline-block;
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .service-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #764ba2, #667eea);
+            transition: left 0.3s;
+            z-index: 1;
+        }
+        
+        .service-link:hover::before {
+            left: 0;
+        }
+        
+        .service-link span {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .service-link:hover {
+            transform: scale(1.05);
+        }
+        
+        .status-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 12px;
+            height: 12px;
+            background: #4CAF50;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .info-section {
+            background: rgba(103, 126, 234, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .info-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .info-section p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏪 Rakuten Services Dashboard</h1>
+        
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="status-indicator"></div>
+                <div class="service-icon">📊</div>
+                <div class="service-title">Streamlit</div>
+                <div class="service-description">Interface utilisateur interactive pour la visualisation et l'analyse des données</div>
+                <a href="/streamlit/" class="service-link">
+                    <span>Accéder à Streamlit</span>
+                </a>
+            </div>
+            
+            <div class="service-card">
+                <div class="status-indicator"></div>
+                <div class="service-icon">🔧</div>
+                <div class="service-title">FastAPI</div>
+                <div class="service-description">API REST pour les services backend et l'authentification</div>
+                <a href="/api/docs" class="service-link">
+                    <span>Accéder à l'API</span>
+                </a>
+            </div>
+            
+            <div class="service-card">
+                <div class="status-indicator"></div>
+                <div class="service-icon">🧪</div>
+                <div class="service-title">MLflow</div>
+                <div class="service-description">Plateforme de gestion des expériences et modèles ML</div>
+                <a href="http://mlflow.localhost" class="service-link" target="_blank">
+                    <span>Accéder à MLflow</span>
+                </a>
+            </div>
+            
+            <div class="service-card">
+                <div class="status-indicator"></div>
+                <div class="service-icon">🌊</div>
+                <div class="service-title">Airflow</div>
+                <div class="service-description">Orchestration et planification des workflows de données</div>
+                <a href="/airflow/" class="service-link">
+                    <span>Accéder à Airflow</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <h3>ℹ️ Informations système</h3>
+            <p>
+                Tous les services sont accessibles via nginx sur le port 8088. 
+                Cette interface centralise l'accès à tous les composants de votre plateforme Rakuten.
+                Les indicateurs verts montrent que les services sont opérationnels.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>🚀 Rakuten Platform - Powered by Docker & nginx</p>
+        </div>
+    </div>
+</body>
+</html>
