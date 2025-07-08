@@ -188,10 +188,10 @@ services:
       - mlflow
       - airflow
     volumes:
-      - ./src/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./src/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./src/nginx/html:/usr/share/nginx/html:ro
-      - ./src/nginx/html:/etc/nginx/html:ro
+      - ./src/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./src/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./src/nginx/html:/usr/share/nginx/html
+      - ./src/nginx/html:/etc/nginx/html
     restart: unless-stopped
 
 volumes:
