@@ -52,3 +52,5 @@ altair
 mlflow
 dvc[s3]
 
+# Monitoring
+prometheus-fastapi-instrumentator
