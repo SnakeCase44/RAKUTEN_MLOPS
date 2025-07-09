@@ -121,7 +121,7 @@
                 localStorage.setItem('access_token', data.access_token);
 
                 // Redirection vers Streamlit avec token en query param
-                window.location.href = `http://127.0.0.1:8501?token=${data.access_token}`;
+                window.location.href = `/streamlit/?token=${data.access_token}`;
             } else {
                 const error = await response.json();
                 errorDiv.textContent = error.detail || 'Erreur de connexion';
