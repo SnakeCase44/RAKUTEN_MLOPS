@@ -165,6 +165,7 @@ services:
       - ./src/monitoring/grafana-dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
       - ./src/monitoring/node-exporter-full.json:/etc/grafana/provisioning/dashboards/node-exporter-full.json
       - ./src/monitoring/fastapi-dashboard.json:/etc/grafana/provisioning/dashboards/fastapi-dashboard.json
+      - ./src/monitoring/mlflow-dashboard.json:/etc/grafana/provisioning/dashboards/mlflow-dashboard.json
     depends_on:
       - prometheus
 
@@ -175,6 +176,14 @@ services:
       - "9101:9100"
     restart: unless-stopped
 
+  mlflow_exporter:
+    build:
+      context: ./src/mlflow/exporter
+    container_name: rakuten_mlflow_exporter
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./src/mlflow/mlruns:/mlflow/mlruns
 
 volumes:
   postgres_data:

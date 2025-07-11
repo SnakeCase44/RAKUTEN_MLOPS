@@ -27,9 +27,11 @@ test_multimodal.ipynb
 *.pkl
 *.ckpt
 *.csv
-*.json
 *.pth
-mlflow/mlruns/*
+src/mlflow/mlruns/*
+dataset/*.json
+submissions/*.json
+models/rakuten_transformer_text/model/*.json
 
 # === IDE : PYCHARM ===
 .idea/

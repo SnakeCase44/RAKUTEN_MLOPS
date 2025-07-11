@@ -10,7 +10,7 @@ token = query_params.get("token", None)
 
 if token and "access_token" not in st.session_state:
     st.session_state.access_token = token
-    st.query_params.clear()  # Nettoie l’URL
+    st.query_params.clear()  # Nettoie l'URL
 
 token = st.session_state.get("access_token")
 
@@ -27,10 +27,10 @@ if token:
             # Définir les pages accessibles en fonction du rôle
             if role == "admin":
                 st.header("👑 Admin Panel")
-                accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit", "Dashboard MLflow", "Airflow"]
+                accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit", "Dashboard MLflow", "Monitoring", "Airflow"]
             elif role == "dev":
                 st.header("👨‍💻 Espace Dev")
-                accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit"]
+                accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit", "Monitoring"]
             elif role == "client":
                 st.header("🛒 Espace Client")
                 accessible_pages = ["Accueil", "Classification produit"]
@@ -61,6 +61,9 @@ if token:
             elif page == "Airflow":
                 from pages_streamlit import page_airflow
                 page_airflow.run(role)
+            elif page == "Monitoring":
+                from pages_streamlit import page_monitoring
+                page_monitoring.run(role)
         else:
             st.error("Token invalide ou expiré.")
             st.markdown("[Connectez-vous ici](http://127.0.0.1:8000/)")
@@ -68,5 +71,5 @@ if token:
         st.error(f"Erreur de connexion à l'API : {str(e)}")
         st.markdown("[Connectez-vous ici](http://127.0.0.1:8000/)")
 else:
-    st.warning("Connectez-vous via FastAPI d’abord.")
+    st.warning("Connectez-vous via FastAPI d'abord.")
     st.markdown("[Connectez-vous ici](http://127.0.0.1:8000/)")
