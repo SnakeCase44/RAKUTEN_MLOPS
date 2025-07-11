@@ -192,7 +192,7 @@ async def proxy_streamlit(path: str, request: Request):
         if k.lower().encode() not in EXCLUDED_HEADERS
     }
     return Response(content=resp.content, status_code=resp.status_code, headers=out_hdrs)
-'''
+
 
 # 3) Redirection de base pour Airflow
 @app.get("/proxy/airflow")
@@ -286,83 +286,6 @@ async def proxy_airflow(path: str, request: Request):
         status_code=resp.status_code,
         headers=filtered
     )
-# ───────────────────────────────────────────────────────────────────────────────
-# 🎛️  Grafana proxy derrière /proxy/grafana/
-# ───────────────────────────────────────────────────────────────────────────────
-@app.get("/proxy/grafana")
-async def redirect_grafana_root():
-    """
-    Redirection propre /proxy/grafana → /proxy/grafana/
-    """
-    return RedirectResponse(url="/proxy/grafana/")
+'''
 
-
-@app.api_route(
-    "/proxy/grafana/{path:path}",
-    methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
-)
-async def proxy_grafana(path: str, request: Request):
-    """
-    Reverse-proxy Grafana :
-    • monte toutes les routes sous /proxy/grafana/
-    • injecte le JWT
-    • réécrit les liens HTML et les headers de redirect/cookie
-    """
-    # 1) Calcul du chemin upstream Grafana
-    upstream_path = f"/{path}" if path else "/"
-    split = urlsplit(str(request.url))
-    upstream_url = urlunsplit((
-        "http", "grafana:3000",  # nom du service et port
-        upstream_path,
-        split.query,
-        ""
-    ))
-    print(f"🔀 Proxy Grafana → {upstream_url}")
-
-    # 2) Appel HTTP vers Grafana
-    async with httpx.AsyncClient() as client:
-        resp = await client.request(
-            request.method,
-            upstream_url,
-            headers=prepare_headers(request.headers.raw),
-            content=await request.body(),
-            follow_redirects=False
-        )
-
-    content = resp.content
-    ctype   = resp.headers.get("content-type", "").lower()
-
-    # 3) Si c'est une page HTML, on rewrite les href/src/action
-    if "text/html" in ctype:
-        html = content.decode("utf-8", errors="ignore")
-
-        # prefixer tous les liens absolus
-        html = re.sub(
-            r'(href|src|action)="\/(?!proxy\/grafana)([^"]+)"',
-            r'\1="/proxy/grafana/\2"',
-            html
-        )
-        content = html.encode("utf-8")
-
-    # 4) Filtrer et réécrire les headers de réponse
-    filtered = {}
-    for k, v in resp.headers.items():
-        kl = k.lower().encode()
-        if kl in EXCLUDED_HEADERS:
-            continue
-
-        # réécrire Location: /… → /proxy/grafana/…
-        if k.lower() == "location" and v.startswith("/"):
-            v = f"/proxy/grafana{v}"
-
-        # réécrire Set-Cookie Path=/ → Path=/proxy/grafana/
-        if k.lower() == "set-cookie":
-            v = re.sub(r"Path=/", "Path=/proxy/grafana/", v, flags=re.IGNORECASE)
-
-        filtered[k] = v
-
-    return Response(
-        content=content,
-        status_code=resp.status_code,
-        headers=filtered
-    )
+  

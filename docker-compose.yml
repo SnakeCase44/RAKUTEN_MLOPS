@@ -202,7 +202,7 @@ services:
         dockerfile: src/gateway/Dockerfile  
       container_name: rakuten_gateway
       ports:
-        - "8001:8000"  # Port interne exposé vers nginx uniquement
+        - "8002:8000"  # 
       depends_on:
         - api
         - streamlit
