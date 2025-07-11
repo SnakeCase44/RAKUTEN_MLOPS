@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from PIL import Image
 from fastapi.testclient import TestClient
-from src.fastapi.main import app
+from src.fastapi1.main import app
 
 
 @pytest.fixture

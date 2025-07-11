@@ -24,4 +24,4 @@ COPY models/ ./models/
 COPY tests/ ./tests/
 COPY config.py ./
 
-CMD ["uvicorn", "src.fastapi.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.fastapi1.main:app", "--host", "0.0.0.0", "--port", "8000"]

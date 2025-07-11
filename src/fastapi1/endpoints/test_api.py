@@ -12,7 +12,7 @@ from passlib.context import CryptContext
 
 app = FastAPI()
 router = APIRouter()
-templates = Jinja2Templates(directory="src/fastapi/endpoints")
+templates = Jinja2Templates(directory="src/fastapi1/endpoints")
 
 # Connexion à la base PostgreSQL
 def get_db_connection():

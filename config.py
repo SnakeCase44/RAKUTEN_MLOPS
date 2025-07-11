@@ -51,7 +51,7 @@ IMAGE_TRAIN_DIR        = DATA_DIR / "images" / "image_train"
 IMAGE_TEST_DIR         = DATA_DIR / "images" / "image_test"
 
 # === Dossier API ===
-API_DIR = PROJECT_ROOT / "src" / "fastapi" / "endpoints"
+API_DIR = PROJECT_ROOT / "src" / "fastapi1" / "endpoints"
 
 # ======================================================================================
 # Modèle et device

@@ -40,7 +40,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: ["python", "src/fastapi/endpoints/dbcrypt.py"]
+    command: ["python", "src/fastapi1/endpoints/dbcrypt.py"]
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     restart: "no"
@@ -48,7 +48,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: src/fastapi/Dockerfile
+      dockerfile: src/fastapi1/Dockerfile
     image: rakuten_fastapi
     container_name: rakuten_api
     ports:
@@ -84,7 +84,7 @@ services:
     ports:
       - "8501:8501"
     environment:
-      API_URL: http://api:8000
+      API_URL: http://nginx:80/proxy/api
       DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/rakuten_auth
       MLFLOW_TRACKING_URI: http://mlflow:5005
     volumes:
@@ -105,6 +105,13 @@ services:
       - "5005:5005"
     volumes:
       - ./src/mlflow/mlruns:/mlflow/mlruns
+    command: >
+      mlflow server
+      --backend-store-uri sqlite:///mlflow.db
+      --default-artifact-root /mlruns
+      --host 0.0.0.0
+      --port 5005
+      --static-prefix /proxy/mlflow
     environment:
       MLFLOW_TRACKING_URI: http://mlflow:5005
     restart: unless-stopped
@@ -176,14 +183,47 @@ services:
       - "9101:9100"
     restart: unless-stopped
 
-  mlflow_exporter:
-    build:
-      context: ./src/mlflow/exporter
-    container_name: rakuten_mlflow_exporter
+  nginx:
+    image: nginx:latest
+    container_name: rakuten_nginx
     ports:
-      - "8001:8001"
+      - "8088:80"
+    depends_on:
+      - gateway
     volumes:
-      - ./src/mlflow/mlruns:/mlflow/mlruns
+      - ./src/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./src/nginx/html:/usr/share/nginx/html
+      - .env:/opt/nginx/.env
+    restart: unless-stopped
+
+  gateway:
+      build:
+        context: .
+        dockerfile: src/gateway/Dockerfile  
+      container_name: rakuten_gateway
+      ports:
+        - "8001:8000"  # Port interne exposé vers nginx uniquement
+      depends_on:
+        - api
+        - streamlit
+        - mlflow
+        - airflow
+      environment:
+        SECRET_KEY: supersecretkey
+        JWT_ALGORITHM: HS256
+      volumes:
+        - ./src:/app/src
+        - .env:/opt/gateway/.env
+      restart: unless-stopped
+      
+  mlflow_exporter:
+      build:
+        context: ./src/mlflow/exporter
+      container_name: rakuten_mlflow_exporter
+      ports:
+        - "8001:8001"
+      volumes:
+        - ./src/mlflow/mlruns:/mlflow/mlruns
 
 volumes:
   postgres_data:
