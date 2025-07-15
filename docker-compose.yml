@@ -100,6 +100,7 @@ services:
     build:
       context: ./src/mlflow
       dockerfile: Dockerfile
+    container_name: rakuten_mlflow
     image: rakuten_mlflow:latest
     ports:
       - "5005:5005"
