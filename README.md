@@ -16,7 +16,7 @@ Cette API utilise des modèles de Machine Learning pour classifier des produits 
 ├── 🐳 docker-compose.yml
 ├── 📄 requirements.txt
 ├── ⚙️ config.py
-├── 📁 src/fastapi/
+├── 📁 src/fastapi1/
 │   ├── main.py
 │   └── endpoints/
 │       ├── test_api.py

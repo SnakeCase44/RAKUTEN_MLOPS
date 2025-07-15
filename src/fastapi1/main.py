@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from src.fastapi.endpoints import test_api, prediction_api, api_train, api_evaluate
+from src.fastapi1.endpoints import test_api, prediction_api, api_train, api_evaluate
 
 app = FastAPI(title="Rakuten Multimodal API")
 

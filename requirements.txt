@@ -54,3 +54,10 @@ dvc[s3]
 
 # Monitoring
 prometheus-fastapi-instrumentator
+
+#Nginx
+httpx
+python-jose
+dotenv
+
+

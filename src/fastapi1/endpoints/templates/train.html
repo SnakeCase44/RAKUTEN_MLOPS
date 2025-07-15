@@ -6,7 +6,7 @@
 </head>
 <body>
     <h1>Train Model</h1>
-    <form action="/train" method="post">
+    <form action="/proxy/api/train" method="post">
         <label for="batch_size">Batch Size:</label>
         <input type="number" id="batch_size" name="batch_size" value="{{ hyperparams.batch_size }}"><br><br>
 
