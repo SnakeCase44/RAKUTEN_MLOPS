@@ -11,7 +11,7 @@ templates = Jinja2Templates(directory=os.path.join(API_DIR, "templates"))
 
 DEFAULT_HYPERPARAMS = {
     "batch_size": 48,
-    "max_epochs": 15,
+    "max_epochs": 1,
     "lr": 5e-6,
     "patience": 2,
     "dropout": 0.4,

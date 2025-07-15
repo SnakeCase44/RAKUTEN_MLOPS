@@ -60,7 +60,16 @@ def main():
     print("Statut d'entraînement réinitialisé à 'running'")
 
     try:
-        mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5005"))
+        # 🔧 Configuration MLflow avec le gateway
+        # Au lieu d'utiliser directement mlflow:5005, passer par le gateway
+        mlflow_uri = os.getenv("MLFLOW_TRACKING_URI", "http://gateway:8002/proxy/mlflow")
+        
+        # Si on est dans le conteneur API, utiliser le gateway
+        if "api" in os.environ.get("HOSTNAME", ""):
+            mlflow_uri = "http://gateway:8002/proxy/mlflow"
+        
+        print(f"🔗 Configuration MLflow URI: {mlflow_uri}")
+        mlflow.set_tracking_uri(mlflow_uri)
         mlflow.set_experiment("Late Fusion Multimodal")
 
         parser = argparse.ArgumentParser()

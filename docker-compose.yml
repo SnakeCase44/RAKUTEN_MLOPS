@@ -100,21 +100,20 @@ services:
     build:
       context: ./src/mlflow
       dockerfile: Dockerfile
-    container_name: rakuten_mlflow
+    image: rakuten_mlflow:latest
     ports:
       - "5005:5005"
     volumes:
       - ./src/mlflow/mlruns:/mlflow/mlruns
     command: >
       mlflow server
-      --backend-store-uri sqlite:///mlflow.db
-      --default-artifact-root /mlruns
-      --host 0.0.0.0
-      --port 5005
-      --static-prefix /proxy/mlflow
-    environment:
-      MLFLOW_TRACKING_URI: http://mlflow:5005
+        --host 0.0.0.0
+        --port 5005
+        --static-prefix /proxy/mlflow
+        --backend-store-uri file:///mlflow/mlruns
+        --default-artifact-root file:///mlflow/mlruns
     restart: unless-stopped
+
 
   airflow:
     build:
