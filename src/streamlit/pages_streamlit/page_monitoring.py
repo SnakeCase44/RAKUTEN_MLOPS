@@ -7,7 +7,7 @@ def run(role=None):
     st.title("📊 Monitoring Grafana & Prometheus")
 
     grafana_url = "http://localhost:3000"
-    prometheus_url = "http://localhost:9090"
+    prometheus_url = "http://localhost:8088/proxy/prometheus/"
 
     if role:
         st.info(f"Connecté en tant que {role}.")

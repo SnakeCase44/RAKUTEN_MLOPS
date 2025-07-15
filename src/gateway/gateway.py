@@ -156,136 +156,49 @@ async def proxy_mlflow(path: str, request: Request):
     }
     return Response(content=resp.content, status_code=resp.status_code, headers=filtered)
 
+@app.get("/proxy/prometheus")
+async def redirect_prometheus_root():
+    """
+    Redirige /proxy/prometheus vers /proxy/prometheus/
+    """
+    return RedirectResponse(url="/proxy/prometheus/")
 
-'''
-# 1) Redirection de base pour Streamlit
-@app.get("/proxy/streamlit")
-async def redirect_streamlit_root():
-    return RedirectResponse(url="/proxy/streamlit/")
-
-# 2) Reverse-proxy Streamlit
 @app.api_route(
-    "/proxy/streamlit/{path:path}",
+    "/proxy/prometheus/{path:path}",
     methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
 )
-async def proxy_streamlit(path: str, request: Request):
-    # normaliser le path ("/" si vide)
+async def proxy_prometheus(path: str, request: Request):
+    """
+    Reverse-proxy vers Prometheus (pas d’auth JWT ici).
+    """
+    # Construire le chemin upstream
+    src = urlsplit(str(request.url))
     upstream_path = f"/{path}" if path else "/"
-    src = urlsplit(str(request.url))
-    upstream = urlunsplit((
-        "http", "streamlit:8501", upstream_path, src.query, ""
-    ))
-
-    print(f"🔀 Proxy Streamlit → {upstream}")
-    async with httpx.AsyncClient() as client:
-        resp = await client.request(
-            request.method,
-            upstream,
-            headers=prepare_headers(request.headers.raw),
-            content=await request.body(),
-            follow_redirects=True
-        )
-
-    # filtrer les hop-by-hop headers
-    out_hdrs = {
-        k: v for k, v in resp.headers.items()
-        if k.lower().encode() not in EXCLUDED_HEADERS
-    }
-    return Response(content=resp.content, status_code=resp.status_code, headers=out_hdrs)
-
-
-# 3) Redirection de base pour Airflow
-@app.get("/proxy/airflow")
-async def redirect_airflow_root():
-    return RedirectResponse(url="/proxy/airflow/")
-
-@app.api_route(
-    "/proxy/airflow/{path:path}",
-    methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
-)
-async def proxy_airflow(path: str, request: Request):
-    """
-    Reverse-proxy Airflow derrière /proxy/airflow,
-    avec rewriting complet des URLs et injection JWT.
-    """
-    # 1) Choix du chemin upstream
-    if request.method == "POST" and path == "":
-        # le login POST form par défaut vise "/", on cible /login/
-        upstream_path = "/login/"
-    else:
-        upstream_path = f"/{path}" if path else "/"
-
-    # 2) Construire l'URL upstream (avec query string)
-    src = urlsplit(str(request.url))
     upstream_url = urlunsplit((
-        "http", "airflow:8080",  # nom du service et port
+        "http",
+        "prometheus:9090",
         upstream_path,
         src.query,
         ""
     ))
-    print(f"🔀 Proxy Airflow → {upstream_url}")
+    print(f"🔀 Proxy Prometheus → {upstream_url}")
 
-    # 3) Appel au serveur Airflow
-    async with httpx.AsyncClient() as client:
+    # Appel upstream
+    async with httpx.AsyncClient(timeout=30.0) as client:
         resp = await client.request(
             request.method,
             upstream_url,
-            headers=prepare_headers(request.headers.raw),
+            headers=[
+                (k, v) for k, v in request.headers.raw
+                if k.lower() not in EXCLUDED_HEADERS and k.lower() != b"authorization"
+            ],
             content=await request.body(),
-            follow_redirects=False  # on gère les redirects nous-mêmes
+            follow_redirects=True,
         )
 
-    # 4) Rewriting du body si c'est du HTML
-    content = resp.content
-    ctype   = resp.headers.get("content-type", "")
-    if "text/html" in ctype.lower():
-        text = content.decode("utf-8", errors="ignore")
-
-        # 4.1) Réécrit tous les href/src="/..." → "/proxy/airflow/..."
-        text = re.sub(
-            r'(href|src)="\/(?!proxy\/airflow)([^"]+)"',
-            r'\1="/proxy/airflow/\2"',
-            text
-        )
-
-        # 4.2) Réécrit les form action="/..." → "/proxy/airflow/..."
-        text = re.sub(
-            r'action="\/(?!proxy\/airflow)([^"]+)"',
-            r'action="/proxy/airflow/\1"',
-            text
-        )
-
-        # 4.3) Réécrit les meta refresh url=/...
-        text = re.sub(
-            r'url=\s*\/(?!proxy\/airflow)([^;"]+)',
-            r'url=/proxy/airflow/\1',
-            text
-        )
-
-        content = text.encode("utf-8")
-
-    # 5) Filtrer et réécrire les en-têtes de réponse
-    filtered = {}
-    for k, v in resp.headers.items():
-        kl = k.lower().encode()
-        if kl in EXCLUDED_HEADERS:
-            continue
-
-        # 5.1) Rewrite Location: /foo → /proxy/airflow/foo
-        if k.lower() == "location" and v.startswith("/"):
-            v = f"/proxy/airflow{v}"
-
-        # 5.2) Rewrite cookie Path=/ → Path=/proxy/airflow/
-        if k.lower() == "set-cookie":
-            v = re.sub(r"Path=/", "Path=/proxy/airflow/", v, flags=re.IGNORECASE)
-
-        filtered[k] = v
-
-    return Response(
-        content=content,
-        status_code=resp.status_code,
-        headers=filtered
-    )
-'''
-
-  
+    # Filtrer les hop-by-hop headers
+    filtered = {
+        k: v for k, v in resp.headers.items()
+        if k.lower().encode() not in EXCLUDED_HEADERS
+    }
+    return Response(content=resp.content, status_code=resp.status_code, headers=filtered)
