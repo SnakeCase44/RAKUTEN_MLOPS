@@ -7,7 +7,7 @@ API_URL = f"{API_BASE_URL}/train"
 
 DEFAULT_HYPERPARAMS = {
     "batch_size": 48,
-    "max_epochs": 15,
+    "max_epochs": 1,
     "lr": 5e-6,
     "patience": 2,
     "dropout": 0.4,

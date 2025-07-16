@@ -35,7 +35,7 @@ from config import IMAGE_PREPROCESSED_DIR
 # Configuration par défaut pour le modèle multimodal
 DEFAULT_MULTIMODAL_CONFIG = {
     "batch_size": 48,         # Nombre d'échantillons par batch
-    "max_epochs": 15,         # Nombre maximal d'epochs (early stopping peut arrêter avant)
+    "max_epochs": 1,         # Nombre maximal d'epochs (early stopping peut arrêter avant)
     "lr": 5e-6,               # Learning rate de départ (sera ajusté avec ReduceLROnPlateau)
     "patience": 2,            # Nombre d'epochs sans amélioration avant action du scheduler
     "dropout": 0.4,           # Dropout appliqué dans le classifieur (pour éviter l'overfitting)
