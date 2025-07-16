@@ -8,9 +8,16 @@ import requests
 query_params = st.query_params
 token = query_params.get("token", None)
 
+# Si token dans URL, on l'ajoute à la session
 if token and "access_token" not in st.session_state:
     st.session_state.access_token = token
-    st.query_params.clear()  # Nettoie l'URL
+    st.query_params.clear()
+
+# Vérifie si déconnexion demandée
+if "logout" in query_params:
+    st.session_state.clear()
+    st.success("Déconnexion réussie. Cliquez [ici](http://127.0.0.1:8000/) pour vous reconnecter.")
+    st.stop()
 
 token = st.session_state.get("access_token")
 
@@ -20,25 +27,32 @@ if token:
         response = requests.get("http://rakuten_api:8000/users/me", headers=headers)
         if response.status_code == 200:
             user = response.json()
-            st.success(f"Bienvenue {user['username']} !")
+            username = user['username']
             role = user.get("role", "inconnu")
-            st.info(f"Rôle : {role}")
+
+            # ➕ Bienvenue + lien logout alignés
+            col1, col2 = st.columns([5, 1])
+            with col1:
+                st.success(f"Bienvenue {username} !")
+            with col2:
+                st.markdown(
+                    "<div style='text-align: right;'>"
+                    "<a href='?logout=true' style='color:red;text-decoration:none;'>🚪 Logout</a>"
+                    "</div>",
+                    unsafe_allow_html=True
+                )
 
             # Définir les pages accessibles en fonction du rôle
             if role == "admin":
-                st.header("👑 Admin Panel")
                 accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit", "Dashboard MLflow", "Monitoring", "Airflow"]
             elif role == "dev":
-                st.header("👨‍💻 Espace Dev")
                 accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit", "Monitoring"]
             elif role == "client":
-                st.header("🛒 Espace Client")
                 accessible_pages = ["Accueil", "Classification produit"]
             else:
                 st.warning("Rôle non reconnu.")
                 accessible_pages = ["Accueil"]
 
-            # Configuration de la page
             st.set_page_config(page_title="RAKUTEN", layout="wide")
 
             # Navigation latérale
