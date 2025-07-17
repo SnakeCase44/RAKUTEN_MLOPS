@@ -1,24 +1,16 @@
 {
   "uid": "mlflow-monitor",
   "title": "MLflow Metrics",
-  "tags": [
-    "mlflow",
-    "ml"
-  ],
+  "tags": ["mlflow", "ml"],
   "timezone": "browser",
   "schemaVersion": 27,
-  "version": 4,
+  "version": 5,
   "refresh": "10s",
   "panels": [
     {
       "type": "timeseries",
       "title": "Epoch Progress",
-      "gridPos": {
-        "x": 0,
-        "y": 0,
-        "w": 12,
-        "h": 6
-      },
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 6},
       "targets": [
         {
           "expr": "mlflow_run_metric{name=\"epoch\"}",
@@ -26,21 +18,12 @@
           "legendFormat": "Epoch - {{experiment_id}}/{{run_id}}"
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short"
-        }
-      }
+      "fieldConfig": {"defaults": {"unit": "short"}}
     },
     {
       "type": "timeseries",
       "title": "Learning Rate & Adam Weight",
-      "gridPos": {
-        "x": 12,
-        "y": 0,
-        "w": 12,
-        "h": 6
-      },
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 6},
       "targets": [
         {
           "expr": "mlflow_run_metric{name=\"lr-AdamW\"}",
@@ -48,21 +31,12 @@
           "legendFormat": "Learning Rate AdamW - {{experiment_id}}/{{run_id}}"
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short"
-        }
-      }
+      "fieldConfig": {"defaults": {"unit": "short"}}
     },
     {
       "type": "timeseries",
       "title": "F1 Scores (All Tests)",
-      "gridPos": {
-        "x": 0,
-        "y": 6,
-        "w": 12,
-        "h": 6
-      },
+      "gridPos": {"x": 0, "y": 6, "w": 12, "h": 6},
       "targets": [
         {
           "expr": "mlflow_run_metric{name=~\".*f1.*\"}",
@@ -70,23 +44,12 @@
           "legendFormat": "{{name}} - {{experiment_id}}/{{run_id}}"
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "min": 0,
-          "max": 1
-        }
-      }
+      "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1}}
     },
     {
       "type": "timeseries",
       "title": "Precision Scores (All Tests)",
-      "gridPos": {
-        "x": 12,
-        "y": 6,
-        "w": 12,
-        "h": 6
-      },
+      "gridPos": {"x": 12, "y": 6, "w": 12, "h": 6},
       "targets": [
         {
           "expr": "mlflow_run_metric{name=~\".*precision.*\"}",
@@ -94,23 +57,12 @@
           "legendFormat": "{{name}} - {{experiment_id}}/{{run_id}}"
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "min": 0,
-          "max": 1
-        }
-      }
+      "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1}}
     },
     {
       "type": "timeseries",
       "title": "Recall Scores (All Tests)",
-      "gridPos": {
-        "x": 0,
-        "y": 12,
-        "w": 12,
-        "h": 6
-      },
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 6},
       "targets": [
         {
           "expr": "mlflow_run_metric{name=~\".*recall.*\"}",
@@ -118,23 +70,12 @@
           "legendFormat": "{{name}} - {{experiment_id}}/{{run_id}}"
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "min": 0,
-          "max": 1
-        }
-      }
+      "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1}}
     },
     {
       "type": "stat",
       "title": "Latest Test Results (Current Run Only)",
-      "gridPos": {
-        "x": 12,
-        "y": 12,
-        "w": 12,
-        "h": 6
-      },
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 6},
       "targets": [
         {
           "expr": "max(mlflow_run_metric{name=\"test_60_f1\"})",
@@ -152,23 +93,12 @@
           "legendFormat": "Test 60 Recall"
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "min": 0,
-          "max": 1
-        }
-      }
+      "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1}}
     },
     {
       "type": "table",
       "title": "All Runs Comparison",
-      "gridPos": {
-        "x": 0,
-        "y": 18,
-        "w": 24,
-        "h": 6
-      },
+      "gridPos": {"x": 0, "y": 18, "w": 24, "h": 6},
       "targets": [
         {
           "expr": "mlflow_run_metric{name=~\"test_60_(f1|precision|recall)\"}",
@@ -180,16 +110,8 @@
       "fieldConfig": {
         "overrides": [
           {
-            "matcher": {
-              "id": "byName",
-              "options": "Value"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percentunit"
-              }
-            ]
+            "matcher": {"id": "byName", "options": "Value"},
+            "properties": [{"id": "unit", "value": "percentunit"}]
           }
         ]
       },
@@ -216,12 +138,7 @@
     {
       "type": "table",
       "title": "Current Run Parameters",
-      "gridPos": {
-        "x": 0,
-        "y": 24,
-        "w": 12,
-        "h": 6
-      },
+      "gridPos": {"x": 0, "y": 24, "w": 12, "h": 6},
       "targets": [
         {
           "expr": "mlflow_run_param",
@@ -249,50 +166,9 @@
       ]
     },
     {
-      "type": "stat",
-      "title": "Current Run Status",
-      "gridPos": {
-        "x": 12,
-        "y": 24,
-        "w": 12,
-        "h": 6
-      },
-      "targets": [
-        {
-          "expr": "max(mlflow_run_status)",
-          "refId": "L",
-          "legendFormat": "Latest Run Status"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "text": "Running",
-                  "color": "orange"
-                },
-                "1": {
-                  "text": "Finished",
-                  "color": "green"
-                }
-              },
-              "type": "value"
-            }
-          ]
-        }
-      }
-    },
-    {
       "type": "timeseries",
       "title": "All Metrics Overview",
-      "gridPos": {
-        "x": 0,
-        "y": 30,
-        "w": 24,
-        "h": 8
-      },
+      "gridPos": {"x": 12, "y": 24, "w": 12, "h": 6},
       "targets": [
         {
           "expr": "topk(5, mlflow_run_metric)",
@@ -300,11 +176,7 @@
           "legendFormat": "{{name}} - {{run_id|substr 0 8}}"
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short"
-        }
-      }
+      "fieldConfig": {"defaults": {"unit": "short"}}
     }
   ]
 }

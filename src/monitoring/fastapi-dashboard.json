@@ -2,37 +2,18 @@
   "id": null,
   "uid": "fastapi-metrics",
   "title": "FastAPI Monitoring",
-  "tags": [
-    "fastapi",
-    "prometheus"
-  ],
+  "tags": ["fastapi", "prometheus"],
   "timezone": "browser",
   "schemaVersion": 36,
-  "version": 1,
+  "version": 2,
   "refresh": "10s",
   "time": {
     "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
-    "refresh_intervals": [
-      "5s",
-      "10s",
-      "30s",
-      "1m",
-      "5m"
-    ],
-    "time_options": [
-      "5m",
-      "15m",
-      "1h",
-      "6h",
-      "12h",
-      "24h",
-      "2d",
-      "7d",
-      "30d"
-    ]
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"],
+    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
   },
   "panels": [
     {
@@ -49,12 +30,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "gridPos": {
-        "x": 0,
-        "y": 0,
-        "w": 6,
-        "h": 4
-      }
+      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 4}
     },
     {
       "type": "stat",
@@ -70,12 +46,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "gridPos": {
-        "x": 6,
-        "y": 0,
-        "w": 6,
-        "h": 4
-      }
+      "gridPos": {"x": 0, "y": 4, "w": 24, "h": 4}
     },
     {
       "type": "graph",
@@ -91,12 +62,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "gridPos": {
-        "x": 0,
-        "y": 4,
-        "w": 12,
-        "h": 8
-      }
+      "gridPos": {"x": 0, "y": 8, "w": 24, "h": 8}
     },
     {
       "type": "table",
@@ -112,12 +78,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "gridPos": {
-        "x": 0,
-        "y": 12,
-        "w": 12,
-        "h": 8
-      }
+      "gridPos": {"x": 0, "y": 16, "w": 24, "h": 8}
     }
   ]
 }
