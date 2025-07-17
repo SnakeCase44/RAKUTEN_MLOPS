@@ -42,53 +42,107 @@ def run(role=None):
     st.image(image, caption="Schéma global des microservices", use_container_width=True)  
     st.subheader("📘 Détail des services")
     st.markdown("""
-        ## 🔵 1. Base de Données (PostgreSQL)
-
-        **`postgres`**  
-        Conteneur principal. Stocke `rakuten_auth` et `airflow_db`. Port **5432**.
-
-        **`postgres_init`**  
-        Crée la base `airflow_db` à l'initialisation.
-
-        **`init_db`**  
-        Initialise `rakuten_auth` avec un script Python (`dbcrypt.py`).
+        # 🧩 Présentation de l’architecture des microservices RAKUTEN MLOps
 
         ---
 
-        ## 🟢 2. API et Interface
+        ## 🟦 1. Base de Données – PostgreSQL
 
-        **`api` (FastAPI)**  
-        Exporte les endpoints REST, charge un modèle ML, connectée à PostgreSQL et MLFlow. Port **8000**.
-
-        **`streamlit`**  
-        Interface utilisateur → interagit avec l’API via `nginx`. Port **8501**.
-
-        ---
-
-        ## 🟠 3. Machine Learning
-
-        **`mlflow`**  
-        Suivi des expérimentations. Port **5005**.
+        - Stocke deux bases :
+        - `rakuten_auth` : pour l’authentification utilisateur
+        - `airflow_db` : pour les métadonnées d’Airflow
+        - `postgres_init` : crée `airflow_db` au démarrage
+        - `init_db` : exécute un script Python (`dbcrypt.py`) pour initialiser les tables
 
         ---
 
-        ## 🟡 4. Orchestration
+        ## 🟧 2. API Principale – FastAPI (`rakuten_api`)
 
-        **`airflow`**  
-        Planifie les tâches et pipelines ML. Port **8080**.
-
-        ---
-
-        ## 🟣 5. Monitoring
-
-        **`prometheus`** : collecte les métriques  
-        **`grafana`** : visualisation des dashboards (port **3000**)  
-        **`node_exporter`**, **`mlflow_exporter`** : sources de métriques
+        - Noyau métier de l’application
+        - Connectée à PostgreSQL (`rakuten_auth`)
+        - Charge un modèle ML local depuis `MODEL_PATH`
+        - Communique avec MLFlow pour tracer les expériences
+        - Expose des endpoints pour la prédiction et l'entraînement
+        - Compatible GPU via NVIDIA Docker runtime
 
         ---
 
-        ## 🟧 6. Proxy
+        ## 🟩 3. Interface Utilisateur – Streamlit
 
-        **`gateway`** : sécurise et route les requêtes  
-        **`nginx`** : reverse proxy pour `/proxy/api`, `/proxy/mlflow`, etc.
+        - Front-end interactif
+        - Connectée à FastAPI via NGINX (`/proxy/api`)
+        - Accès aux modèles et logs via volumes partagés
+        - Permet de tester les prédictions et visualiser les résultats
+
+        ---
+
+        ## 🟦 4. Suivi des Expériences – MLflow
+
+        - Serveur MLflow exposé à `/mlflow UI`
+        - Stocke les métriques, hyperparamètres et artefacts dans `mlruns`
+        - Connecté à l’API FastAPI pour tracer les entraînements
+
+        ---
+
+        ## 🔁 5. Export des Métriques – MLflow Exporter API
+
+        - Convertit les logs MLflow pour Prometheus
+        - Accessible sur le port `8001`
+        - Permet à Prometheus de suivre l’évolution des expériences ML
+
+        ---
+
+        ## 📊 6. Monitoring – Prometheus & Grafana
+
+        ### Prometheus
+        - Récupère des métriques système, API, MLflow
+        - Utilise `node_exporter` et `mlflow_exporter`
+
+        ### Grafana
+        - Visualise les métriques Prometheus
+        - Dashboards préconfigurés (FastAPI, MLFlow, système)
+        - Accessible sur le port `3000`
+
+        ---
+
+        ## ⚙️ 7. Orchestration – Airflow
+
+        - Planifie des workflows ML (entraînement, nettoyage, etc.)
+        - DAGs définis dans `src/airflow/dags/`
+        - Utilise PostgreSQL (`airflow_db`) comme backend
+        - Accessible sur le port `8080`
+
+        ---
+
+        ## 🔐 8. API Gateway – `rakuten_gateway`
+
+        - Gère :
+        - Authentification JWT
+        - Redirection vers :
+            - `/proxy/api`
+            - `/streamlit`
+            - `/mlflow`
+            - `/prometheus`
+        - Joue un rôle central dans la sécurité et l’agrégation des services
+
+        ---
+
+        ## 🌐 9. Reverse Proxy – NGINX
+
+        - Expose tous les services vers Internet via le port `8088`
+        - Gère les chemins `/proxy/*`
+        - Sert un front HTML statique si besoin
+
+        ---
+
+        ## 🔚 Conclusion
+
+        Cette architecture est :
+        - **Modulaire** : chaque service a une responsabilité claire
+        - **Robuste** : monitoring, gestion des erreurs, dépendances gérées
+        - **MLOps-ready** : tracking, automatisation, reproductibilité
+
+        ---
+
+
     """)
