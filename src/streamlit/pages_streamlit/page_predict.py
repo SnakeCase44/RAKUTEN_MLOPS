@@ -65,7 +65,7 @@ def run(role=None):
 
             if uploaded_file:
                 image = Image.open(uploaded_file)
-                st.image(image, caption=f"Image: {uploaded_file.name}", use_column_width=True)
+                st.image(image, caption=f"Image: {uploaded_file.name}", use_container_width=True)
 
         submitted = st.form_submit_button("🚀 Prédire")
 

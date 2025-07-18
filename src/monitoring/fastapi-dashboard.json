@@ -1,84 +1,115 @@
 {
-  "id": null,
   "uid": "fastapi-metrics",
   "title": "FastAPI Monitoring",
   "tags": ["fastapi", "prometheus"],
   "timezone": "browser",
   "schemaVersion": 36,
-  "version": 2,
+  "version": 5,
   "refresh": "10s",
-  "time": {
-    "from": "now-5m",
-    "to": "now"
-  },
-  "timepicker": {
-    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"],
-    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
-  },
+  "time": { "from": "now-15m", "to": "now" },
   "panels": [
     {
       "type": "stat",
-      "title": "API Health (up)",
+      "title": "API Health",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 4 },
       "targets": [
         {
           "expr": "up{job=\"fastapi\"}",
-          "refId": "A",
-          "interval": "10s"
+          "refId": "A"
         }
       ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 4}
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": { "text": "UP" },
+                "0": { "text": "DOWN" }
+              }
+            }
+          ]
+        }
+      }
     },
     {
-      "type": "stat",
-      "title": "Total Requests",
+      "type": "table",
+      "title": "Requêtes HTTP (endpoint, méthode)",
+      "gridPos": { "x": 0, "y": 4, "w": 24, "h": 10 },
       "targets": [
         {
           "expr": "http_requests_total",
           "refId": "B",
-          "interval": "10s"
+          "format": "table"
         }
       ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "decimals": 0 }
       },
-      "gridPos": {"x": 0, "y": 4, "w": 24, "h": 4}
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "handler": "Endpoint",
+              "method": "Méthode",
+              "Value": "Total requêtes"
+            },
+            "excludeByName": { "instance": true, "job": true }
+          }
+        }
+      ]
     },
     {
-      "type": "graph",
-      "title": "Request Duration (seconds)",
+      "type": "timeseries",
+      "title": "Durée moyenne par route (s)",
+      "gridPos": { "x": 0, "y": 14, "w": 24, "h": 10 },
       "targets": [
         {
-          "expr": "rate(http_request_duration_seconds_sum[1m]) / rate(http_request_duration_seconds_count[1m])",
-          "refId": "C",
-          "interval": "10s"
+          "expr": "http_request_duration_seconds_sum / http_request_duration_seconds_count",
+          "legendFormat": "{{handler}} ({{method}})",
+          "refId": "C"
         }
       ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {"x": 0, "y": 8, "w": 24, "h": 8}
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
     },
     {
       "type": "table",
-      "title": "Requests by Path",
+      "title": "Requêtes par endpoint",
+      "gridPos": { "x": 0, "y": 24, "w": 24, "h": 8 },
       "targets": [
         {
-          "expr": "sum by (path) (rate(http_requests_total[1m]))",
+          "expr": "sum by (handler) (http_requests_total)",
           "refId": "D",
-          "interval": "10s"
+          "format": "table"
         }
       ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "decimals": 0 }
       },
-      "gridPos": {"x": 0, "y": 16, "w": 24, "h": 8}
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "handler": "Endpoint",
+              "Value": "Nombre de requêtes (5min)"
+            }
+          }
+        }
+      ]
     }
   ]
 }

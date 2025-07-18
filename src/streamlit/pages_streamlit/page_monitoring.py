@@ -49,15 +49,16 @@ def run(role=None):
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.markdown("#### 🤖 MLflow Metrics")
+        st.markdown("#### 🤖 MLflow Dashboard")
         st.markdown("""
-        - **F1, Precision, Recall** en temps réel
-        - **Historique des entraînements**
-        - **Métriques du dernier run**
-        - **Paramètres et durées**
+        - **F1 Score par classe**
+        - **Métriques globales** (Macro/Micro/Weighted F1)
+        - **Progression des epochs** en temps réel
+        - **Learning Rate AdamW**
+        - **Top 10 classes** - performances
         """)
         st.markdown(
-            f"""<a href="{grafana_url}/d/mlflow-monitor" target="_blank">
+            f"""<a href="{grafana_url}/d/mlflow-multiclass/mlflow-dashboard?orgId=1" target="_blank">
                     <button style="padding:8px 16px; font-size:14px; background-color:#52c41a; color:white; border:none; border-radius:3px;">
                         Voir Dashboard MLflow
                     </button>
@@ -68,10 +69,11 @@ def run(role=None):
     with col2:
         st.markdown("#### ⚡ FastAPI Monitoring")
         st.markdown("""
-        - **Statut de l'API** (up/down)
-        - **Nombre de requêtes totales**
-        - **Temps de réponse moyen**
-        - **Requêtes par endpoint**
+        - **Statut API** (UP/DOWN)
+        - **Requêtes HTTP** par endpoint/méthode
+        - **Durée moyenne** par route
+        - **Total requêtes** par endpoint
+        - **Monitoring routes** /token, /train, /predict
         """)
         st.markdown(
             f"""<a href="{grafana_url}/d/fastapi-metrics" target="_blank">
@@ -88,7 +90,7 @@ def run(role=None):
         - **CPU, Mémoire, Disque**
         - **Charge système**
         - **I/O disque et réseau**
-        - **Santé des containers**
+        - **Métriques système hôte**
         """)
         st.markdown(
             f"""<a href="{grafana_url}/d/rYdddlPWk" target="_blank">
@@ -159,34 +161,45 @@ Timeout     : 5s
 
     with tab1:
         st.markdown("""
+        **Métriques d'entraînement par classe :**
+        - `mlflow_run_metric{name="test_1140_f1_score"}` - F1 Score classe 1140
+        - `mlflow_run_metric{name="test_1320_f1_score"}` - F1 Score classe 1320
+        - `mlflow_run_metric{name="test_*_precision"}` - Précision par classe
+        - `mlflow_run_metric{name="test_*_recall"}` - Rappel par classe
+
+        **Métriques globales :**
+        - `mlflow_run_metric{name="test_macro_f1"}` - F1 Score macro
+        - `mlflow_run_metric{name="test_micro_f1"}` - F1 Score micro  
+        - `mlflow_run_metric{name="test_weighted_f1"}` - F1 Score weighted
+        - `mlflow_run_metric{name="test_accuracy"}` - Accuracy globale
+
         **Métriques d'entraînement :**
-        - `mlflow_run_metric{name="test_60_f1"}` - Score F1 du dernier test
-        - `mlflow_run_metric{name="test_60_precision"}` - Précision du modèle
-        - `mlflow_run_metric{name="test_60_recall"}` - Rappel du modèle
         - `mlflow_run_metric{name="epoch"}` - Progression des époques
         - `mlflow_run_metric{name="lr-AdamW"}` - Taux d'apprentissage
-
-        **Métriques de run :**
         - `mlflow_run_duration_seconds` - Durée d'entraînement
         - `mlflow_run_status` - Statut (0=Running, 1=Finished)
-        - `mlflow_run_param{name="batch_size"}` - Paramètres d'entraînement
         """)
 
     with tab2:
         st.markdown("""
-        **Métriques HTTP :**
-        - `http_requests_total` - Nombre total de requêtes
-        - `http_request_duration_seconds` - Temps de réponse
+        **Métriques HTTP principales :**
+        - `http_requests_total{handler="/token",method="POST"}` - Authentifications
+        - `http_requests_total{handler="/train",method="POST"}` - Démarrages d'entraînement
+        - `http_requests_total{handler="/predict/multimodal"}` - Prédictions
+        - `http_requests_total{handler="/metrics"}` - Scraping Prometheus
         - `up{job="fastapi"}` - Statut de l'API (1=UP, 0=DOWN)
+
+        **Métriques de performance :**
+        - `http_request_duration_seconds_sum / http_request_duration_seconds_count` - Temps moyen
+        - `http_request_duration_seconds{handler="/train"}` - Durée endpoint /train
 
         **Exemples de requêtes PromQL :**
         ```
-        # Taux de requêtes par minute
-        rate(http_requests_total[1m])
+        # Total requêtes par endpoint
+        sum by (handler) (http_requests_total)
 
-        # Temps de réponse moyen
-        rate(http_request_duration_seconds_sum[1m]) / 
-        rate(http_request_duration_seconds_count[1m])
+        # Temps de réponse moyen par route
+        http_request_duration_seconds_sum / http_request_duration_seconds_count
         ```
         """)
 
@@ -227,28 +240,61 @@ Timeout     : 5s
     st.markdown("### 💡 Comment utiliser")
 
     st.markdown("""
-    #### **Pour suivre un entraînement :**
-    1. Lancez votre entraînement MLflow
+    #### **Pour suivre un entraînement MLflow :**
+    1. Lancez votre entraînement avec Airflow ou directement
     2. Ouvrez le **Dashboard MLflow** dans Grafana
-    3. Surveillez les métriques en temps réel (F1, loss, etc.)
-    4. Les **gros chiffres** affichent toujours le dernier run
+    3. Surveillez la **progression des epochs** et le **learning rate**
+    4. Consultez le **tableau F1 par classe**
+    5. Vérifiez les **métriques globales** (Macro/Micro/Weighted F1)
 
-    #### **Pour surveiller l'API :**
+    #### **Pour surveiller l'API FastAPI :**
     1. Ouvrez le **Dashboard FastAPI**
     2. Vérifiez que l'API est **UP** (indicateur vert)
-    3. Surveillez le **temps de réponse** et le **nombre de requêtes**
+    3. Consultez les **requêtes par endpoint** (/token, /train, /predict)
+    4. Surveillez les **durées moyennes** par route
+    5. Vérifiez les **totaux de requêtes** par endpoint
 
     #### **Pour surveiller le système :**
     1. Ouvrez le **Dashboard Node Exporter Full**
     2. Vérifiez l'utilisation **CPU, RAM et disque**
     3. Surveillez les **I/O** et la **charge système**
-    4. Contrôlez la **santé des containers Docker**
+    4. Analysez les **métriques réseau** du système hôte
 
     #### **Pour analyser les performances :**
     - Utilisez l'**historique complet** dans les graphiques
-    - **Comparez** les différents runs d'entraînement
+    - **Comparez** les différents runs d'entraînement par run_id
+    - **Analysez** les performances par classe
     - **Exportez** les dashboards pour vos rapports
     """)
+
+    st.markdown("---")
+
+    # Section caractéristiques
+    st.markdown("### 📊 Caractéristiques des dashboards")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("#### ✨ Dashboard MLflow")
+        st.success("""
+        **Fonctionnalités disponibles :**
+        - **classes surveillées** en temps réel
+        - **Métriques par classe** : F1, Precision, Recall
+        - **Métriques globales** : Macro/Micro/Weighted
+        - **Top 10 classes** avec meilleures performances
+        - **Comparaison entre runs** avec run_id
+        """)
+
+    with col2:
+        st.markdown("#### ⚡ Dashboard FastAPI")
+        st.success("""
+        **Fonctionnalités disponibles :**
+        - **Toutes les routes visibles** (/token, /train, /predict)
+        - **Compteurs précis** par endpoint
+        - **Durées de réponse** par endpoint
+        - **Total requêtes** par endpoint
+        - **Compatible avec Airflow** (authentification automatique)
+        """)
 
     st.markdown("---")
 
@@ -262,6 +308,7 @@ Timeout     : 5s
         - Gestion des utilisateurs et permissions
         - Export des données de monitoring
         - Configuration des rétentions Prometheus
+        - Accès aux métriques détaillées MLflow
         """)
     else:
         st.info("Accès en lecture seule aux dashboards de monitoring.")

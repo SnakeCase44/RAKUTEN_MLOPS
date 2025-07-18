@@ -343,7 +343,7 @@ class MultimodalTrainer:
     device : torch.device
         Appareil utilisé pour l'entraînement ou l'inférence (CPU ou CUDA).
         """
-    
+
     def __init__(self, model_save_path, config=None, mlflow_run_id=None):
         """
           Initialise l'entraîneur multimodal avec les chemins de sauvegarde et la configuration.
@@ -391,7 +391,7 @@ class MultimodalTrainer:
             Modèle d'encodage des textes (doit exposer `get_embedding()`).
         tokenizer : transformers.PreTrainedTokenizer
             Tokenizer compatible avec le modèle texte (ex. XLM-Roberta).
-            
+
         MODIFICATION: Remplacement du CSVLogger par MLFlowLogger
         """
         os.makedirs(self.model_save_path, exist_ok=True)
@@ -447,18 +447,18 @@ class MultimodalTrainer:
         # ============= MODIFICATION PRINCIPALE =============
         # Configuration des loggers avec MLflow
         loggers = []
-        
+
         # CSV Logger (gardé pour compatibilité)
         csv_logger = CSVLogger(save_dir=self.model_save_path, name="metrics")
         loggers.append(csv_logger)
-        
+
         # MLflow Logger - NOUVEAU
         if self.mlflow_run_id:
             mlflow_logger = MLFlowLogger(
                 experiment_name="Late Fusion Multimodal",
                 run_id=self.mlflow_run_id,
                 log_model=False
-                
+
             )
             loggers.append(mlflow_logger)
         # ===============================================
@@ -511,7 +511,7 @@ class MultimodalTrainer:
 
     def evaluate(self, df_test, y_test, tokenizer, report_path=None):
         """
-              
+
         Évalue le modèle entraîné sur un jeu de test.
         Calcule les prédictions sur les données test, puis affiche et enregistre un rapport de classification.
         Paramètres
@@ -577,23 +577,23 @@ class MultimodalTrainer:
 
         # ============= NOUVEAU: LOGGING MLFLOW =============
         if self.mlflow_run_id:
-            # Log des métriques globales
+            # Métriques globales
             mlflow.log_metrics({
-                "test_accuracy": report['accuracy'],
-                "test_macro_f1": report['macro avg']['f1-score'],
-                "test_weighted_f1": report['weighted avg']['f1-score'],
-                "test_macro_precision": report['macro avg']['precision'],
-                "test_macro_recall": report['macro avg']['recall']
+                "test_accuracy": report.get("accuracy", 0.0),
+                "test_macro_f1": report.get("macro avg", {}).get("f1-score", 0.0),
+                "test_weighted_f1": report.get("weighted avg", {}).get("f1-score", 0.0),
+                "test_macro_precision": report.get("macro avg", {}).get("precision", 0.0),
+                "test_macro_recall": report.get("macro avg", {}).get("recall", 0.0)
             })
-            
-            # Log des métriques par classe (optionnel)
-            for class_name, metrics in report.items():
-                if isinstance(metrics, dict) and class_name not in ['accuracy', 'macro avg', 'weighted avg']:
-                    mlflow.log_metrics({
-                        f"test_{class_name}_f1": metrics['f1-score'],
-                        f"test_{class_name}_precision": metrics['precision'],
-                        f"test_{class_name}_recall": metrics['recall']
-                    })
+
+            # Métriques par classe - TOUTES LES 31 CLASSES
+            for label, scores in report.items():
+                if isinstance(scores, dict) and label not in ["accuracy", "macro avg", "weighted avg"]:
+                    label_clean = str(label).replace(" ", "_").replace(".", "")
+                    for metric_name, value in scores.items():
+                        if metric_name in ["precision", "recall", "f1-score"]:
+                            metric_key = f"test_{label_clean}_{metric_name.replace('-', '_')}"
+                            mlflow.log_metric(metric_key, value)
         # =================================================
 
         # Écriture du rapport dans un fichier

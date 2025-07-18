@@ -17,7 +17,7 @@ def run(role=None):
         2. 🧪 Développement de **modèles unimodaux** :
             - `XLM-RoBERTa` pour le texte,
             - `EfficientNet-B2` pour les images.
-        3. 🔀 Construction de **modèles multimodaux** via une stratégie de fusion `mid-level`, en combinant les représentations issues des deux modalités.
+        3. 🔀 Construction de **modèles multimodaux** via une stratégie de fusion `late-level`, en combinant les représentations issues des deux modalités.
         4. ⚙️ **Pipeline MLOps** :
             - Entraînement automatisé via **FastAPI**,
             - Intégration dans une interface **Streamlit** pour le pilotage,
