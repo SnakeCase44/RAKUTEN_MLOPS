@@ -1,198 +1,133 @@
 {
-  "uid": "mlflow-monitor",
-  "title": "MLflow Metrics",
-  "tags": [
-    "mlflow",
-    "ml"
-  ],
+  "uid": "mlflow-multiclass",
+  "title": "MLflow Dashboard",
+  "tags": ["mlflow", "ml"],
   "timezone": "browser",
-  "schemaVersion": 27,
+  "schemaVersion": 36,
   "version": 4,
   "refresh": "10s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
   "panels": [
     {
       "type": "timeseries",
-      "title": "Epoch Progress",
-      "gridPos": {
-        "x": 0,
-        "y": 0,
-        "w": 12,
-        "h": 6
-      },
+      "title": "Progression des Epochs",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 6 },
       "targets": [
         {
           "expr": "mlflow_run_metric{name=\"epoch\"}",
-          "refId": "A",
-          "legendFormat": "Epoch - {{experiment_id}}/{{run_id}}"
+          "refId": "A"
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short"
-        }
-      }
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "datasource": { "type": "prometheus", "uid": "prometheus" }
     },
     {
       "type": "timeseries",
-      "title": "Learning Rate & Adam Weight",
-      "gridPos": {
-        "x": 12,
-        "y": 0,
-        "w": 12,
-        "h": 6
-      },
+      "title": "Learning Rate (AdamW)",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 6 },
       "targets": [
         {
           "expr": "mlflow_run_metric{name=\"lr-AdamW\"}",
-          "refId": "B",
-          "legendFormat": "Learning Rate AdamW - {{experiment_id}}/{{run_id}}"
+          "refId": "B"
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short"
-        }
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "F1 Scores (All Tests)",
-      "gridPos": {
-        "x": 0,
-        "y": 6,
-        "w": 12,
-        "h": 6
-      },
-      "targets": [
-        {
-          "expr": "mlflow_run_metric{name=~\".*f1.*\"}",
-          "refId": "C",
-          "legendFormat": "{{name}} - {{experiment_id}}/{{run_id}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "min": 0,
-          "max": 1
-        }
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Precision Scores (All Tests)",
-      "gridPos": {
-        "x": 12,
-        "y": 6,
-        "w": 12,
-        "h": 6
-      },
-      "targets": [
-        {
-          "expr": "mlflow_run_metric{name=~\".*precision.*\"}",
-          "refId": "D",
-          "legendFormat": "{{name}} - {{experiment_id}}/{{run_id}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "min": 0,
-          "max": 1
-        }
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Recall Scores (All Tests)",
-      "gridPos": {
-        "x": 0,
-        "y": 12,
-        "w": 12,
-        "h": 6
-      },
-      "targets": [
-        {
-          "expr": "mlflow_run_metric{name=~\".*recall.*\"}",
-          "refId": "E",
-          "legendFormat": "{{name}} - {{experiment_id}}/{{run_id}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "min": 0,
-          "max": 1
-        }
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Latest Test Results (Current Run Only)",
-      "gridPos": {
-        "x": 12,
-        "y": 12,
-        "w": 12,
-        "h": 6
-      },
-      "targets": [
-        {
-          "expr": "max(mlflow_run_metric{name=\"test_60_f1\"})",
-          "refId": "F",
-          "legendFormat": "Test 60 F1"
-        },
-        {
-          "expr": "max(mlflow_run_metric{name=\"test_60_precision\"})",
-          "refId": "G",
-          "legendFormat": "Test 60 Precision"
-        },
-        {
-          "expr": "max(mlflow_run_metric{name=\"test_60_recall\"})",
-          "refId": "H",
-          "legendFormat": "Test 60 Recall"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "min": 0,
-          "max": 1
-        }
-      }
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "datasource": { "type": "prometheus", "uid": "prometheus" }
     },
     {
       "type": "table",
-      "title": "All Runs Comparison",
-      "gridPos": {
-        "x": 0,
-        "y": 18,
-        "w": 24,
-        "h": 6
-      },
+      "title": "F1 Score par classe (Dernier run)",
+      "gridPos": { "x": 0, "y": 6, "w": 24, "h": 6 },
       "targets": [
         {
-          "expr": "mlflow_run_metric{name=~\"test_60_(f1|precision|recall)\"}",
-          "format": "table",
-          "refId": "I",
-          "instant": true
+          "expr": "mlflow_run_metric{name=~\"test_.*_f1_score\"}",
+          "refId": "A",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        }
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "name": "Classe F1",
+              "Value": "Score",
+              "run_id": "Run ID"
+            },
+            "excludeByName": {
+              "Time": true,
+              "experiment_id": true,
+              "job": true,
+              "instance": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "F1 Macro / Micro / Weighted",
+      "gridPos": { "x": 0, "y": 12, "w": 24, "h": 5 },
+      "targets": [
+        {
+          "expr": "max(mlflow_run_metric{name=\"test_macro_f1\"})",
+          "refId": "A",
+          "legendFormat": "Macro F1"
+        },
+        {
+          "expr": "max(mlflow_run_metric{name=\"test_micro_f1\"})",
+          "refId": "B",
+          "legendFormat": "Micro F1"
+        },
+        {
+          "expr": "max(mlflow_run_metric{name=\"test_weighted_f1\"})",
+          "refId": "C",
+          "legendFormat": "Weighted F1"
         }
       ],
       "fieldConfig": {
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percentunit"
-              }
-            ]
-          }
-        ]
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "displayMode": "basic"
+        }
       },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "datasource": { "type": "prometheus", "uid": "prometheus" }
+    },
+    {
+      "type": "table",
+      "title": "Métriques globales par run",
+      "gridPos": { "x": 0, "y": 17, "w": 24, "h": 7 },
+      "targets": [
+        {
+          "expr": "mlflow_run_metric{name=~\"^test_(accuracy|macro_f1|weighted_f1|micro_f1)$\"}",
+          "format": "table",
+          "refId": "F",
+          "instant": true
+        }
+      ],
       "transformations": [
         {
           "id": "organize",
@@ -203,7 +138,6 @@
               "job": true,
               "experiment_id": true
             },
-            "indexByName": {},
             "renameByName": {
               "run_id": "Run ID",
               "name": "Metric",
@@ -211,100 +145,38 @@
             }
           }
         }
-      ]
-    },
-    {
-      "type": "table",
-      "title": "Current Run Parameters",
-      "gridPos": {
-        "x": 0,
-        "y": 24,
-        "w": 12,
-        "h": 6
-      },
-      "targets": [
-        {
-          "expr": "mlflow_run_param",
-          "format": "table",
-          "refId": "J",
-          "instant": true
-        }
-      ],
-      "transformations": [
-        {
-          "id": "groupBy",
-          "options": {
-            "fields": {
-              "name": {
-                "aggregations": [],
-                "operation": "groupby"
-              },
-              "Value": {
-                "aggregations": ["lastNotNull"],
-                "operation": "aggregate"
-              }
-            }
-          }
-        }
-      ]
-    },
-    {
-      "type": "stat",
-      "title": "Current Run Status",
-      "gridPos": {
-        "x": 12,
-        "y": 24,
-        "w": 12,
-        "h": 6
-      },
-      "targets": [
-        {
-          "expr": "max(mlflow_run_status)",
-          "refId": "L",
-          "legendFormat": "Latest Run Status"
-        }
       ],
       "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "text": "Running",
-                  "color": "orange"
-                },
-                "1": {
-                  "text": "Finished",
-                  "color": "green"
-                }
-              },
-              "type": "value"
-            }
-          ]
-        }
-      }
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Score" },
+            "properties": [
+              { "id": "unit", "value": "percentunit" }
+            ]
+          }
+        ]
+      },
+      "datasource": { "type": "prometheus", "uid": "prometheus" }
     },
     {
       "type": "timeseries",
-      "title": "All Metrics Overview",
-      "gridPos": {
-        "x": 0,
-        "y": 30,
-        "w": 24,
-        "h": 8
-      },
+      "title": "Top 10 Classes - F1 Score",
+      "gridPos": { "x": 0, "y": 24, "w": 24, "h": 7 },
       "targets": [
         {
-          "expr": "topk(5, mlflow_run_metric)",
-          "refId": "L",
-          "legendFormat": "{{name}} - {{run_id|substr 0 8}}"
+          "expr": "topk(10, mlflow_run_metric{name=~\"test_.*_f1_score\"})",
+          "refId": "G",
+          "legendFormat": "{{name}}"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short"
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
         }
-      }
+      },
+      "datasource": { "type": "prometheus", "uid": "prometheus" }
     }
   ]
 }

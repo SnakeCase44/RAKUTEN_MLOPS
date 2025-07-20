@@ -41,9 +41,6 @@ def run(role=None):
     st.title("🎯 Classification Multimodale")
     st.write("Uploadez une image et saisissez une description pour classifier le produit.")
 
-    if role:
-        st.info(f"Vous êtes connecté en tant que {role}.")
-
     with st.form("predict_form"):
         col1, col2 = st.columns(2)
 
@@ -65,7 +62,7 @@ def run(role=None):
 
             if uploaded_file:
                 image = Image.open(uploaded_file)
-                st.image(image, caption=f"Image: {uploaded_file.name}", use_column_width=True)
+                st.image(image, caption=f"Image: {uploaded_file.name}", use_container_width=True)
 
         submitted = st.form_submit_button("🚀 Prédire")
 

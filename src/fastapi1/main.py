@@ -5,10 +5,17 @@ from src.fastapi1.endpoints import test_api, prediction_api, api_train, api_eval
 
 app = FastAPI(title="Rakuten Multimodal API")
 
-# --- Prometheus Instrumentation ---
-Instrumentator().instrument(app).expose(app)
+# --- Prometheus Instrumentation CORRIGÉE ---
+instrumentator = Instrumentator(
+    should_group_status_codes=False,
+    should_ignore_untemplated=True,
+    should_respect_env_var=False,
+    should_instrument_requests_inprogress=True
+)
 
-# --- Register routers ---
+instrumentator.instrument(app).expose(app)
+
+# --- Register routers APRÈS l'instrumentation ---
 app.include_router(test_api.router)
 app.include_router(api_train.router)
 app.include_router(prediction_api.router)

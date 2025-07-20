@@ -8,9 +8,6 @@ def run(role=None):
 
     airflow_url = "http://localhost:8080"
 
-    if role:
-        st.info(f"Connecté en tant que {role}.")
-
     st.markdown("### Accès à l'interface Airflow")
 
     st.markdown(
