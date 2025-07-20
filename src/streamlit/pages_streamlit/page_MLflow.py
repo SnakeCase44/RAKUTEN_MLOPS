@@ -6,9 +6,6 @@ def run(role=None):
 
     mlflow_url = "http://localhost:8088/proxy/mlflow/"
 
-    if role:
-        st.info(f"Vous êtes connecté en tant que {role}.")
-
     # Section accès rapide
     st.markdown("### 🚀 Accès à l'interface MLflow")
 

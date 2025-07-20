@@ -22,6 +22,7 @@ def run(role=None):
             - Entraînement automatisé via **FastAPI**,
             - Intégration dans une interface **Streamlit** pour le pilotage,
             - Orchestration avec **Airflow**, packaging avec **Docker**, versioning, et logs structurés.
+        5. Versionning avec Github et Dagshub (https://dagshub.com/snakecase44/RAKUTEN_MLOPS)
 
         ---
 
@@ -39,7 +40,7 @@ def run(role=None):
     st.title("🧩 Architecture des Microservices")
     st.subheader("📌 Schéma de l'architecture")
     image = Image.open("schema_microservices.png")
-    st.image(image, caption="Schéma global des microservices", use_container_width=True)  
+    st.image(image, caption="Schéma global des microservices", width=600)
     st.subheader("📘 Détail des services")
     st.markdown("""
         # 🧩 Présentation de l’architecture des microservices RAKUTEN MLOps

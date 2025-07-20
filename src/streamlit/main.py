@@ -44,9 +44,9 @@ if token:
 
             # Définir les pages accessibles en fonction du rôle
             if role == "admin":
-                accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit", "Dashboard MLflow", "Monitoring", "Airflow"]
+                accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit", "Dashboard MLflow", "Monitoring", "Airflow", "Conclusion"]
             elif role == "dev":
-                accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit", "Monitoring"]
+                accessible_pages = ["Accueil", "Entraînement modèle", "Classification produit", "Monitoring", "Conclusion"]
             elif role == "client":
                 accessible_pages = ["Accueil", "Classification produit"]
             else:
@@ -78,6 +78,9 @@ if token:
             elif page == "Monitoring":
                 from pages_streamlit import page_monitoring
                 page_monitoring.run(role)
+            elif page == "Conclusion":
+                from pages_streamlit import page_conclusion
+                page_conclusion.run(role)
         else:
             st.error("Token invalide ou expiré.")
             st.markdown("[Connectez-vous ici](http://127.0.0.1:8000/)")

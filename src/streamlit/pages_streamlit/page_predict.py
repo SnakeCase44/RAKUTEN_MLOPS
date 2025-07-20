@@ -41,9 +41,6 @@ def run(role=None):
     st.title("🎯 Classification Multimodale")
     st.write("Uploadez une image et saisissez une description pour classifier le produit.")
 
-    if role:
-        st.info(f"Vous êtes connecté en tant que {role}.")
-
     with st.form("predict_form"):
         col1, col2 = st.columns(2)
 
